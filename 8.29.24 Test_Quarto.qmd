@@ -1,0 +1,56 @@
+---
+title: "Testing_Quarto"
+format: 
+  html: default #if you change this to pdf, it will render a pdf
+  pdf: default
+editor: visual
+# Can also pass options, like a table of contents
+#format:
+#  html:
+#    css: style.css
+#    toc: true # toc stands for "table of contents"
+#    toc-depth: 5
+#    toc-expand: 2
+#  pdf: # Can put pdf options if you switch between the 2 options, but you need to say which is the default
+---
+
+```{r}
+rm(list = ls())
+
+# Install packages
+data(mtcars)
+```
+
+## Running Code
+
+for the {r} part, you can change to do Python, etc.
+
+"...r" w/o curly brackets makes something look like R code, but IT WON'T RUN.
+
+```{r}
+mean(mtcars$mpg)
+```
+
+You can add options to executable code like this
+
+"#|" is a special command in R, like doing {r, echo = T} in RMarkdown. This is the Quarto way.
+
+echo: false = Do you want to echo out the command you put in? e.g. mean(), etc.
+
+*DON'T HIDE ANYTHING FOR THIS CLASS.*
+
+To do it globally, put it in the HEADER:
+
+    title: "My Document"
+    execute:
+      echo: false
+    jupyter: python3
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed). The backticks allow you to talk about a function/highlight it in the Markdown output. `r round(1.5567)` can allow you to pull R output, or pull a variable, etc. into your text. Usually you use this with echo=F and then pull output to display in the text.
+
+
