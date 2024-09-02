@@ -1,8 +1,11 @@
 ---
-title: "PS1"
+title: "Problem Set #1"
 author: "Tiffany Wu"
-format: html
-editor: visual
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+editor: source
 ---
 
 ## Problem 1 - Wine Data
@@ -13,31 +16,214 @@ editor: visual
 rm(list = ls())
 
 # Import wine data
-wine <- read.csv("C:/Users/tiffa/University of Michigan Dropbox/Tiffany Wu/Tiffany Wu’s files/Documents/Stats506/PS1/wine.data")
+wine <- read.csv("C:/Users/tiffa/University of Michigan Dropbox/Tiffany Wu/Tiffany Wu’s files/Documents/Stats506/PS1/wine.data",
+                 header = FALSE)
 
 # Rename columns using wine.names file
-colnames(wine) <- c("Class", "Alcohol", "Malic_Acid", "Ash", "Alcalinity_of_Ash", 
-                    "Magnesium", "Total_Phenols", "Flavanoids", "Nonflavanoid_Phenols", 
+colnames(wine) <- c("Class", "Alcohol", "Malic_Acid", "Ash", 
+                    "Alcalinity_of_Ash", "Magnesium", "Total_Phenols", 
+                    "Flavanoids", "Nonflavanoid_Phenols", 
                     "Proanthocyanins", "Color_Intensity", "Hue", 
                     "OD280_OD315_Diluted_Wines", "Proline")
 ```
 
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+### b. The data contains information on three different classes of wine. Check and report that the number of wines within each class is correct as reported in “wine.names”.
 
 ```{r}
-1 + 1
+# Check num of wines in each class
+# Should be class 1 59, class 2 71, class 3 48
+
+table(wine$Class)
 ```
 
-You can add options to executable code like this
+### c. Use the data to answer the following questions:
+
+#### 1. What is the correlation between alcohol content and color intensity?
+
+The correlation is 0.5463642.
 
 ```{r}
-#| echo: false
-2 * 2
+# Corr b/w Alcohol and Color_Intensity
+cor(wine$Alcohol, wine$Color_Intensity)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+#### 2. Which class has the highest correlation? Which has the lowest?
+
+Class 1 has the highest correlation, at approximately 0.408. Class 2 has the lowest correlation, at approximately 0.270.
+
+```{r}
+# Split the data by class
+class_1 <- subset(wine, Class == 1)
+class_2 <- subset(wine, Class == 2)
+class_3 <- subset(wine, Class == 3)
+
+# Get the correlations for each class
+cor_class_1 <- cor(class_1$Alcohol, class_1$Color_Intensity)
+cor_class_2 <- cor(class_2$Alcohol, class_2$Color_Intensity)
+cor_class_3 <- cor(class_3$Alcohol, class_3$Color_Intensity)
+
+# Show output of all correlations for the html file, don't assign 
+cor(class_1$Alcohol, class_1$Color_Intensity)
+cor(class_2$Alcohol, class_2$Color_Intensity)
+cor(class_3$Alcohol, class_3$Color_Intensity)
+```
+
+#### 3. What is the alcohol content of the wine with the highest color intensity?
+
+The alcohol content is 14.34.
+
+```{r}
+# What is the wine with the highest color intensity? Wine 159.
+max_color <- which.max(wine$Color_Intensity)
+
+# What is alcohol content for Wine 159?
+wine$Alcohol[max_color]
+```
+
+#### 4. What percentage of wines had a higher content of proanthocyanins compare to ash?
+
+Approximately 8.43% of wines had a higher content of proanthocyanins.
+
+```{r}
+# Number of wines with higher proanthocyanins is 15
+higher_p_count <- sum(wine$Proanthocyanins > wine$Ash)
+
+# Divide 15 by total number of wines, multiply by 100 for percentage
+(higher_p_count / nrow(wine)) * 100
+```
+
+### d. Create a table identifying the average value of each variable, providing one row for the overall average, and one row per class with class averages. (This table does not need to be “fancy” but should clearly identify what each value represents.)
+
+*CHECK THAT TABLE IS NEAT ENOUGH*
+
+```{r}
+# Get overall average for each column (-1 to exclude Class column)
+overall_averages <- colMeans(wine[, -1])
+
+# Get the averages for each class
+class_1_avg <- colMeans(class_1[, -1])
+class_2_avg <- colMeans(class_2[, -1])
+class_3_avg <- colMeans(class_3[, -1])
+
+# Combine the averages into a single table
+average_table <- rbind(
+  Overall = overall_averages,
+  "Class 1" = class_1_avg,
+  "Class_2" = class_2_avg,
+  "Class_3" = class_3_avg
+)
+
+print(average_table)
+
+```
+
+```{r}
+# Checking using tidyverse (surpress message, found on StackOverflow)
+suppressPackageStartupMessages(library(tidyverse))
+
+# Overall avg
+tidy_avg <- wine %>%
+  summarise(across(where(is.numeric), mean))
+
+# For each class
+class_averages <- wine %>%
+  group_by(Class) %>%
+  summarise(across(where(is.numeric), mean))
+```
+
+### e. Carry out a series of t-tests to examine whether the level of phenols differs across the three classes. Present the R output and interpret the results.
+
+Below I show the t-tests using the `t.test` function as well as the manual calculation through creating the function `manual_t_test`. Overall, all 3 tests show statistically significant differences in the level of phenols between each pair of classes. These results suggest that phenol levels differ substantially across different wine classes.
+
+For the level of phenols between Class 1 and Class 2, the p-value of 1.889e-11 is extremely small, meaning there is a statistically significant difference between the phenol levels. Additionally, the confidence interval of \[0.43, 0.73\] does not contain 0, further confirming the statistically significant difference.
+
+For the level of phenols between Class 1 and Class 3, the p-value of \< 2.2e-16 is also extremely small, meaning there is a statistically significant difference between the phenol levels. Additionally, the confidence interval of \[1.03, 1.30\] does not contain 0, further confirming the statistically significant difference.
+
+Lastly, for the level of phenols between Class 2 and Class 3, the p-value of 1.622e-10 is once again extremely small, meaning there is a statistically significant difference between the phenol levels. Additionally, the confidence interval of \[0.42, 0.72\] does not contain 0, further confirming the statistically significant difference.
+
+*SINCE WE DO MULTIPLE PAIRWISE T-TESTS, DO WE ALSO NEED TO DO AN F-TEST FOR THE INTERPRETATION?? MULTIPLE PAIRWISE T-TESTS WILL INCREASE RISK OF TYPE I ERROR/FALSE POSITIVES\>*
+
+I also performed an F-test (ANOVA) in order to examine whether there is a statistically significant overall difference in phenol levels between the 3 classes to help control the risk of Type 1 errors due to multiple comparisons from the t-tests. The output shows a statistically significant result (p \< 0.05), meaning that at least 1 of the classes has a different mean phenol level compared to the other groups and justifying the statistically significant results from the pairwise t-tests.
+
+```{r}
+# Use existing function just so we can check answer
+
+# Subset the phenol data for each class
+phenols_class_1 <- class_1$Total_Phenols
+phenols_class_2 <- class_2$Total_Phenols
+phenols_class_3 <- class_3$Total_Phenols
+
+# t-tests between each pair of classes
+t.test(phenols_class_1, phenols_class_2)
+t.test(phenols_class_1, phenols_class_3)
+t.test(phenols_class_2, phenols_class_3)
+
+# F-test to see if there's a significant difference between any of the classes
+f_test <- aov(Total_Phenols ~ factor(Class), data = wine)
+summary(f_test) # it's statistically significant
+```
+
+### For minor extra credit: (You may use an existing R function to carry out the t-test, or for minor extra credit, manually write your own calculation of the t-test p-values.)
+
+The t-statistic for an independent two-sample t-test, assuming equal variances is:
+
+$$
+t = \frac{\bar{X}_1 - \bar{X}_2}{\sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} \times \left(\frac{1}{n_1} + \frac{1}{n_2}\right)}} 
+$$
+
+Where:
+
+-   ($\bar{X}_1$) and ($\bar{X}_2$) are the sample means of classes 1 and 2.
+-   ($n_1$) and ($n_2$) are the sample sizes of classes 1 and 2.
+-   ($s_1^2$) and ($s_2^2$) are the sample variances of classes 1 and 2.
+
+I use the above equation to make my function.
+
+(Attribution of sources: I asked ChatGPT to pull the formula R used for `t.test`'s Welch Two Sample t-test, looked it up  on Wikipedia to confirm, then used ChatGPT again to write it in LaTeX for RMarkdown. I use the equation pulled to write the function.)
+
+*T-STATS ARE SLIGHTLY OFF??*
+
+```{r}
+# Function to manually calculate t-test p-value between two samples
+# Input takes x and y, both of which are numeric vectors containing the data for the 2 groups we want to compare for the t-test
+# https://statsandr.com/blog/student-s-t-test-in-r-and-by-hand-how-to-compare-two-groups-under-different-scenarios/ helped me understand how to format the function
+
+manual_t_test <- function(x, y) {
+  # Calculate means
+  mean_x <- mean(x)
+  mean_y <- mean(y)
+  
+  # Calculate variances
+  var_x <- var(x)
+  var_y <- var(y)
+  
+  # Calculate sample sizes
+  n_x <- length(x)
+  n_y <- length(y)
+  
+  # Calculate pooled standard deviation (first part of denominator)
+  pooled_sd <- sqrt(((n_x - 1) * var_x + (n_y - 1) * var_y) / (n_x + n_y - 2))
+  
+  # Calculate t-statistic (full equation)
+  t_stat <- (mean_x - mean_y) / (pooled_sd * sqrt(1 / n_x + 1 / n_y))
+  
+  # Now we need to see if the t-stat is stat sig
+  # Calculate degrees of freedom
+  df <- n_x + n_y - 2
+  
+  # Calculate p-value: pt(quantile or t-stat, degrees of freedom), uses CDF
+  # t-stat is made negative because pt() func calculates prob of obtaining a value LESS THAN OR EQUAL TO the t-stat you give it-- ensures we look at probability on left tail of distribution
+  # Multiply by 2 because t-test is two-tailed
+  p_value <- 2 * pt(-abs(t_stat), df)
+  
+  # Return the t-statistic and p-value
+  list(t_statistic = t_stat, p_value = p_value)
+}
+
+# Manually perform t-tests
+manual_t_test(phenols_class_1, phenols_class_2)
+manual_t_test(phenols_class_1, phenols_class_3)
+manual_t_test(phenols_class_2, phenols_class_3)
+
+
+```
