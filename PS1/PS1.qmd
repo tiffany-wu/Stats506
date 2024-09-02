@@ -1,0 +1,43 @@
+---
+title: "PS1"
+author: "Tiffany Wu"
+format: html
+editor: visual
+---
+
+## Problem 1 - Wine Data
+
+### a. Import the data into a data.frame in R. Use the information in the “wine.names” file to give appropriate column names. (Note: Downloading and unzipping the file can take place outside of your submitted document, but importing the file should be in the submission.)
+
+```{r}
+rm(list = ls())
+
+# Import wine data
+wine <- read.csv("C:/Users/tiffa/University of Michigan Dropbox/Tiffany Wu/Tiffany Wu’s files/Documents/Stats506/PS1/wine.data")
+
+# Rename columns using wine.names file
+colnames(wine) <- c("Class", "Alcohol", "Malic_Acid", "Ash", "Alcalinity_of_Ash", 
+                    "Magnesium", "Total_Phenols", "Flavanoids", "Nonflavanoid_Phenols", 
+                    "Proanthocyanins", "Color_Intensity", "Hue", 
+                    "OD280_OD315_Diluted_Wines", "Proline")
+```
+
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
