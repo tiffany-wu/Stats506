@@ -224,6 +224,83 @@ manual_t_test <- function(x, y) {
 manual_t_test(phenols_class_1, phenols_class_2)
 manual_t_test(phenols_class_1, phenols_class_3)
 manual_t_test(phenols_class_2, phenols_class_3)
-
-
 ```
+
+## Problem 2 - AskAManager.org Data
+
+### a. Import the data into a data.frame in R. As with the wine data, you may download the data outside of your submission, but importation should take place inside the problem set submission.
+```{r}
+askmanager <- read.csv("C:/Users/tiffa/University of Michigan Dropbox/Tiffany Wu/Tiffany Wu’s files/Documents/Stats506/PS1/AskAManager.csv")
+```
+
+### b. Clean up the variable names. Simplify them.
+```{r}
+# Display the original column names
+print(colnames(askmanager))
+
+# Manually set simplified column names
+colnames(askmanager) <- c(
+  "Row", "Timestamp", "Age", "Industry", "Job_Title", 
+  "Job_Title_Context", "Annual_Salary", "Additional_Compensation", 
+  "Currency", "Currency_Other", "Income_Context", 
+  "Country", "State", "City", 
+  "Years_Experience_Total", "Years_Experience_Field", 
+  "Education_Level", "Gender", "Race"
+)
+
+# Display the new column names to verify
+print(colnames(askmanager))
+```
+
+### c. Restrict the data to those being paid in US dollars (USD). Show that it worked by confirming the number of observations before and after restricting the data.
+```{r}
+# Number of observations before
+num_obs_b4 <- nrow(askmanager)
+num_obs_b4
+
+# Restrict data
+us_dollars <- subset(askmanager, Currency == "USD")
+
+# Number of observations after
+num_obs_after <- nrow(us_dollars)
+num_obs_after
+```
+
+### d. Assume no one starts working before age 18. Eliminate any rows for which their age, years of experience in their field, and years of experience total are impossible. Again, confirm the number of observations. (Hint: Making these variables factor may make your life easier.)
+
+*AFTER RESTRICTING THE DATA TO USD???*
+
+*HELP*
+
+```{r}
+# Number of observations before (after restricting to USD)
+num_obs_b4 <- nrow(us_dollars)
+num_obs_b4
+
+#  Convert the relevant columns to factor
+us_dollars$Age <- as.factor(us_dollars$Age)
+us_dollars$Years_Experience_Total <- as.factor(us_dollars$Years_Experience_Total)
+us_dollars$Years_Experience_Field <- as.factor(us_dollars$Years_Experience_Field)
+
+# Filter the data to eliminate impossible values
+askmanager_filtered <- subset(
+  askmanager_usd, 
+  Age >= 18 & 
+  Years_Experience_Total >= 0 & 
+  Years_Experience_Field >= 0 & 
+  (Age - 18) >= Years_Experience_Total & 
+  Years_Experience_Total >= Years_Experience_Field
+)
+```
+
+
+### e. A lot of the incomes are likely false. Eliminate any rows with extremely low or extremely high salaries. I’ll leave the decision of what thresholds to use up to you; you could choose to eliminate only impossible values, or you could restrict the sample to eliminate the extreme values even if they are realistic (e.g. removing the billionaires or the folks making < $1,000 per year). You must justify your choice, along with either a cited source or an exploration the data, or some combination.Report your final sample size.
+
+### f. (Optional) If you want to see this analysis through for no credit, answer the research question of whether there is a statistical association between education and salary, controlling for years of experience.
+
+## Problem 3 - Palindromic Numbers
+
+
+
+
+
