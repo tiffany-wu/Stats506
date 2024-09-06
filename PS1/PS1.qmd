@@ -6,6 +6,7 @@ format:
     code-fold: true
     code-summary: "Show the code"
 editor: source
+mainfont: Times New Roman
 ---
 
 ## Problem 1 - Wine Data
@@ -567,11 +568,11 @@ nextPalindrome(765431537)  # 765434567
 
 ### c. Use these functions to find the next palindrome for each of the following:
 
-391
-9928
-19272719
-109
-2
+* 391
+* 9928
+* 19272719
+* 109
+* 2
 
 ```{r}
 nextPalindrome(391)
