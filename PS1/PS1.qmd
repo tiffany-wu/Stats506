@@ -24,7 +24,7 @@ colnames(wine) <- c("Class", "Alcohol", "Malic_Acid", "Ash",
                     "Alcalinity_of_Ash", "Magnesium", "Total_Phenols", 
                     "Flavanoids", "Nonflavanoid_Phenols", 
                     "Proanthocyanins", "Color_Intensity", "Hue", 
-                    "OD280_OD315_Diluted_Wines", "Proline")
+                    "Diluted_Wines", "Proline")
 ```
 
 ### b. The data contains information on three different classes of wine. Check and report that the number of wines within each class is correct as reported in “wine.names”.
@@ -168,7 +168,7 @@ summary(f_test) # it's statistically significant
 The t-statistic for an independent two-sample t-test, assuming equal variances is:
 
 $$
-t = \frac{\bar{X}_1 - \bar{X}_2}{\sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} \times \left(\frac{1}{n_1} + \frac{1}{n_2}\right)}} 
+t = \frac{\bar{X}_1 - \bar{X}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}
 $$
 
 Where:
@@ -181,7 +181,11 @@ I use the above equation to make my function.
 
 (Attribution of sources: I asked ChatGPT to pull the formula R used for `t.test`'s Welch Two Sample t-test, looked it up  on Wikipedia to confirm, then used ChatGPT again to write it in LaTeX for RMarkdown. I use the equation pulled to write the function.)
 
-*T-STATS ARE SLIGHTLY OFF??*
+
+*roxygen to document function inputs/output!*
+pool.
+
+welch's, not student's. Can argue why student's 
 
 ```{r}
 # Function to manually calculate t-test p-value between two samples
@@ -190,28 +194,28 @@ I use the above equation to make my function.
 
 manual_t_test <- function(x, y) {
   # Calculate means
-  mean_x <- mean(x)
-  mean_y <- mean(y)
+  mean_x <- mean(x, na.rm = TRUE)
+  mean_y <- mean(y, na.rm = TRUE)
   
   # Calculate variances
-  var_x <- var(x)
-  var_y <- var(y)
+  var_x <- var(x, na.rm = TRUE)
+  var_y <- var(y, na.rm = TRUE)
   
   # Calculate sample sizes
-  n_x <- length(x)
-  n_y <- length(y)
+  n_x <- length(x[!is.na(x)])
+  n_y <- length(y[!is.na(y)])
   
-  # Calculate pooled standard deviation (first part of denominator)
-  pooled_sd <- sqrt(((n_x - 1) * var_x + (n_y - 1) * var_y) / (n_x + n_y - 2))
+  # Calculate the standard error for each group
+  se_x <- var_x / n_x
+  se_y <- var_y / n_y
   
-  # Calculate t-statistic (full equation)
-  t_stat <- (mean_x - mean_y) / (pooled_sd * sqrt(1 / n_x + 1 / n_y))
+  # Calculate the t-statistic using the Welch formula
+  t_stat <- (mean_x - mean_y) / sqrt(se_x + se_y)
   
-  # Now we need to see if the t-stat is stat sig
-  # Calculate degrees of freedom
-  df <- n_x + n_y - 2
+  # Calculate degrees of freedom using the Welch formula
+  df <- (se_x + se_y)^2 / ((se_x^2) / (n_x - 1) + (se_y^2) / (n_y - 1))
   
-  # Calculate p-value: pt(quantile or t-stat, degrees of freedom), uses CDF
+  # Calculate the p-value
   # t-stat is made negative because pt() func calculates prob of obtaining a value LESS THAN OR EQUAL TO the t-stat you give it-- ensures we look at probability on left tail of distribution
   # Multiply by 2 because t-test is two-tailed
   p_value <- 2 * pt(-abs(t_stat), df)
@@ -272,6 +276,15 @@ num_obs_after
 
 *HELP*
 
+Non-factor way:
+- Take highest number of age MINUS lowest number for total years of experience: This has to be >= 18
+- Take highest number of yrs exp in field and highest number in yrs exp field. Total has to be >= field exp.
+
+*YOU CAN BE 18-24 BUT HAVE 5-7 YRS EXP? Can have 5 or 6, but not 7. How to count this???*
+
+Factors/ orders can just do the order
+
+
 ```{r}
 # Number of observations before (after restricting to USD)
 num_obs_b4 <- nrow(us_dollars)
@@ -282,21 +295,93 @@ us_dollars$Age <- as.factor(us_dollars$Age)
 us_dollars$Years_Experience_Total <- as.factor(us_dollars$Years_Experience_Total)
 us_dollars$Years_Experience_Field <- as.factor(us_dollars$Years_Experience_Field)
 
-# Filter the data to eliminate impossible values
-askmanager_filtered <- subset(
-  askmanager_usd, 
-  Age >= 18 & 
-  Years_Experience_Total >= 0 & 
-  Years_Experience_Field >= 0 & 
-  (Age - 18) >= Years_Experience_Total & 
-  Years_Experience_Total >= Years_Experience_Field
-)
+# See all factor levels
+levels(us_dollars$Age)
+levels(us_dollars$Years_Experience_Total)
+levels(us_dollars$Years_Experience_Field)
+
+# Define the question's conditions based on the factor levels
+valid_rows <- with(us_dollars, {
+  (Age == "18-24" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years") & Years_Experience_Field %in% c("1 year or less", "2 - 4 years")) |
+    
+    (Age == "25-34" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years") &
+     Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years")) |
+    
+  (Age == "35-44" & Years_Experience_Total %in% c("5-7 years", "8 - 10 years", "11 - 20 years") &
+     Years_Experience_Field %in% c("5-7 years", "8 - 10 years", "11 - 20 years")) |
+    
+  (Age == "45-54" & Years_Experience_Total %in% c("11 - 20 years", "21 - 30 years") &
+     Years_Experience_Field %in% c("11 - 20 years", "21 - 30 years")) |
+    
+  (Age == "55-64" & Years_Experience_Total %in% c("21 - 30 years", "31 - 40 years") &
+     Years_Experience_Field %in% c("21 - 30 years", "31 - 40 years")) |
+    
+  (Age == "65 or over" & Years_Experience_Total %in% c("31 - 40 years", "41 years or more") &
+     Years_Experience_Field %in% c("31 - 40 years", "41 years or more")) &
+  (Years_Experience_Total >= Years_Experience_Field) &
+  (Age != "under 18")
+})
 ```
 
 
 ### e. A lot of the incomes are likely false. Eliminate any rows with extremely low or extremely high salaries. I’ll leave the decision of what thresholds to use up to you; you could choose to eliminate only impossible values, or you could restrict the sample to eliminate the extreme values even if they are realistic (e.g. removing the billionaires or the folks making < $1,000 per year). You must justify your choice, along with either a cited source or an exploration the data, or some combination.Report your final sample size.
 
+*GET RID OF NAs?*
+
+```{r}
+# Plot Annual Salary distribution
+library(tidyverse)
+
+# Omit NAs-- no NAs in Annual_Salary column
+us_dollars_salary <- subset(us_dollars, !is.na(Annual_Salary))
+
+# Histogram
+us_dollars_salary %>%
+  ggplot(aes(x = Annual_Salary)) +
+  geom_histogram(bins = 50, fill = "lightblue", color = "black") +
+  labs(
+    title = "Distribution of Annual Salary",
+    x = "Annual Salary (USD)",
+    y = "Frequency"
+  ) +
+  xlim(0, 500000) + 
+  theme_minimal()
+
+# Boxplot to help identify outliers
+us_dollars_salary %>%
+  ggplot(aes(y = Annual_Salary)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(
+    title = "Boxplot of Annual Salary",
+    y = "Annual Salary (USD)"
+  ) +
+  ylim(0, 500000) + # Adjust as needed for better visualization
+  theme_minimal()
+
+# Get max and min
+max(us_dollars_salary$Annual_Salary)
+min(us_dollars_salary$Annual_Salary)
+```
+
+
 ### f. (Optional) If you want to see this analysis through for no credit, answer the research question of whether there is a statistical association between education and salary, controlling for years of experience.
+
+*INCLUDE YEARS_EXPERIENCE_FIELD??* Pros/cons of including or not including. Multicollinearity issue?
+
+Do tab, see how heavy on diagonal
+```{r}
+library(lmtest)
+
+# Fit regression
+salary_model <- lm(Annual_Salary ~ Education_Level + Years_Experience_Total,
+                   data = us_dollars_salary)
+
+# Display the summary of the model
+summary_lm <- summary(salary_model)
+
+print(summary_lm)
+```
+
 
 ## Problem 3 - Palindromic Numbers
 
