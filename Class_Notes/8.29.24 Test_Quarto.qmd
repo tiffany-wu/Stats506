@@ -75,3 +75,364 @@ saveRDS(mtcars, file = "rdsobject.rds")
 mtcars2 <- readRDS("rdsobject.rds") # Need to assign name to the object when you read it in
 ```
 
+
+# 9.3.24 Notes
+
+## Vectors
+```{r}
+# Figure out directory
+dir()
+
+# Everything in R is a vector
+a <- c(2,3)
+
+length(a) # 2
+
+typeof(a) # double can have decimals. "5L" means integer.
+
+#An integer is a numeric type specifically for whole numbers.
+#Integers use 32 bits to store values, limiting the range of numbers they can represent compared to doubles.
+#To explicitly create an integer in R, you can use the L suffix (e.g., 42L). Without this, R treats numeric values as doubles by default.
+
+typeof(5L)
+
+typeof(5)
+
+# Mode says it's a number of some kind = numeric
+mode(a)
+mode(5L)
+
+# Character strings
+typeof("a")
+
+# VECTORS CANNOT HAVE MULTIPLE TYPES
+c(1,"a") # converts 1 to a string
+
+# Logicals
+typeof(TRUE)
+3>4
+
+# Inf = infinity
+typeof(Inf) # double
+
+# NaN = Not a Number, flagging missing values or 0/0
+
+# NA = "logical", but we count it as numeric
+c(1,2,Inf, NaN, NA, TRUE, FALSE) # Converts True and False to 1 and 0; Inf, NaN and NA are counted as numerics
+
+3+TRUE # = 4
+
+# Empty vector
+nullv <- c() # c= concatanate, NULL
+length(nullv) # 0
+typeof(nullv) # NULL
+
+# Subsetting vectors = SQUARE brackets []
+v <- c(2, 5, 1, 2, NA)
+v[2] # = 5, R is 1-indexed
+v[c(1, 3, 5)] # 2  1 NA
+4:9 # 4 to 9, all elements
+v[1:3] # 2, 5, 1
+
+# Can use this to drop elements
+v[-(1:3)]
+
+# NEVER USE T and F
+# Can rewrite T, but can't rewrite TRUE
+T <- 5 # R lets you do this
+TRUE <- 5 # R will not let you do this
+
+```
+
+## Lists
+Lists are just like vectors except you can MIX TYPES. 
+```{r}
+list(1, "a") # 1 will stay double, "a" will be character
+
+trial_list <- list(1, "a", mtcars)
+length(trial_list) # =3
+typeof(trial_list)
+
+# sapply applies a function to every element of the list
+sapply(trial_list, typeof)
+sapply(trial_list, length)
+
+# Subsetting list is harder
+trial_list[2] # is still a list
+
+# Have to use DOUBLE BRACKETS to extract items inside the list
+trial_list[[2]]
+
+trial_list[[3]][2] # 3rd object of the mtcars dataset
+
+a <- c(1, 2, 3)
+a[2]
+b <- c("First" = 1, "second" = 2) # Name the elements
+b[1]
+
+
+# Renaming
+names(b) <- c("uno", "dos")
+b
+
+# You can attach multiple classes to 1 object
+
+```
+
+## Matrices
+Vectors are 1-D. Matrices are multiple dimensions.
+Matrices are just vectors with a dimension attribute
+```{r}
+matrix(c(1,2,3,4), nrow = 2) # = 2x2 matrix
+
+m <- matrix(c(1,2,3,4), nrow = 2)
+typeof(m)
+class(m) # matrix AND array
+length(m) # 4 because it's a vector behind the scenes
+dim(m) <- c(1,4) # 1 row, 4 columns, can change dimensions
+
+# Subsetting matrices
+m[,] # whole matrix; blank means EVERYTHING in that dimension
+m[1,2] # first row, second column
+
+
+```
+
+In R, the attributes() function is used to access or set metadata associated with an object. Attributes are additional information about an object that can include things like names, dimensions, class, and more. They help provide context or structure to data without altering the data itself.
+
+```{r}
+attr() # lets you change attributes
+attr(b, "animal") <- NULL # gets rid of attribute, strips out what you just set
+```
+
+## Data frame
+```{r}
+df <- data.frame(a = 1:4,
+                 b = c("a", "b", "c", "d"),
+                 c= c(TRUE, TRUE, NA, NA))
+
+df[,2] # second column
+df$a
+
+# Dataframes do NOT have a dimension because it's not a matrix, it's just a list of vectors
+class(df) <- "list"
+df
+
+# Convert the list back to a data frame
+df <- as.data.frame(df)
+
+# Check the class
+class(df)
+# Output: [1] "data.frame"
+df[1,]
+
+```
+
+## Logical operations
+```{r}
+(3>5) & (2<4) # FALSE because at least 1 is false
+(3>5) | (2<4) # OR, TRUE because at least 1 is true
+
+# && -- double is safer, disallows recycling
+(3>5) && (2<4)
+
+all(c(TRUE, TRUE))
+any(c(TRUE, FALSE))
+
+TRUE && NA # is NA
+
+# regressions take na.action = na.fail (if NA, then crash), na.pass (ignores NA and hope that everything runs), na.omit (reg does this because only uses complete cases)
+```
+
+## Functions
+```{r}
+runif(4) # gives 3 random numbers (n, min, max) = arguments
+# Same as runif(n=4) because n is the first argument of the function
+# Can only switch order if you name the arguments (n=, min = , max=)
+# Based on uniform distribution
+
+runif(min=3, max=20, 4) # will run, will figure out n=4 because it's the last argument that works. But safer to just use the arguments after the first (if the first argument is intuitive)
+```
+
+# 9.5.24 Notes
+
+## More Functions
+```{r}
+# Functions
+foo <- function(){
+  print(3)
+}
+
+foo()
+
+# Z-score
+# Make df with fake data
+x <- runif(100,15, 100)
+xbar <- mean(x)
+xsd <- sd(x)
+z <- (x-xbar)/xsd
+mean(z) # should be 0, or close due to R rounding
+sd(z) # 1 because standardized
+
+# Make Z-score function
+
+std <- function(x){
+  xbar <- mean(x, na.rm = TRUE)
+  xsd <- sd(x, na.rm = TRUE)
+  z <- (x-xbar)/xsd
+  return(z) # Why not print?
+}
+
+std(c(2,25,2, NA))
+
+# Making it fancier
+std2 <- function(x, y = "cat", na.rm = FALSE){ # y and na.rm have default arguments; y doesn't matter because we don't use it
+  xbar <- mean(x, na.rm = na.rm)
+  xsd <- sd(x, na.rm = na.rm)
+  z <- (x-xbar)/xsd
+  return(z) # Why not print?
+}
+
+std2(c(2,25,2, NA))
+
+std2(c(2,25,2, NA), "dog", TRUE)
+
+# Making it fancier w/ roxygen
+# Code tab -> Insert roxygen skeleton
+
+#' Standardize a vector of numerics
+#'
+#' Description of what it does
+#' 
+#' Details of what it does
+#'
+#' @param x vector of numerics
+#' @param na.rm logical, should NAs be removed? Default is TRUE
+#'
+#' @return vector of standardized numerics
+#' @export #controls whether a package will be internal or external
+#'
+#' @examples
+#' 
+std3 <- function(x, na.rm = TRUE){ 
+  # Make warning: Input sanitization, make sure inputs are legit
+  # We need x to be numeric, needs to be a length >1
+  if(!is.numeric(x)){
+    warning("x must be numeric, attempting to convert")
+    x <- as.numeric(x) # be nice, convert to numeric. Will work if input is "1" as a string, etc.
+    if(all(is.na(x))){ # Check again
+      stop("x must be numeric or convertible")
+    }
+  }
+  if(length(x) == 0){
+    stop("x much have positive length")
+  }
+  if(!is.logical(na.rm)){
+    stop("na.rm must be logical")
+  }
+  
+  # Z-score equation
+  xbar <- mean(x, na.rm = na.rm)
+  xsd <- sd(x, na.rm = na.rm)
+  z <- (x-xbar)/xsd
+  return(z) 
+}
+
+std3(c(2,25,2, NA))
+
+std3(c("1", "2", "3"))
+
+std3(c("1", "2", "3"), "mouse")
+
+a <- 1
+b <- a
+b #1
+
+bas <- function(){
+  p <<- 5
+  return(p)
+}
+bas() # returns p AND creates p in global environment w/ value of 5
+
+# RETURN ENDS the function. Anything after return WILL NOT RUN
+```
+
+## Control statements
+Like if/elseif/else statemnents and loops
+
+```{r}
+# if/else
+if (4>5) {
+  print(1)
+} else if (6>10){
+  print("s")
+} else {
+  "yay"
+}
+
+# Loops
+for(i in 1:10){
+  print(i)
+}
+
+for (i in c("a", "b")) {
+  print(i)
+}
+
+# Add numbers until 15
+sum <- 0
+for (i in 1:100) {
+  sum <- sum + i
+  print(sum)
+  if (sum > 15) {
+    break
+  }
+}
+
+for ( i in 1:100) {
+  if (i %% 2 == 0) {
+    print(i)
+    next
+  }
+  print(sum)
+  sum <- sum + i
+  if (sum > 15) {
+    print(sum)
+    break
+  }
+}
+
+# WHILE
+sum <- 0
+while (sum < 15) {
+  sum <- sum + 1
+  print(sum)
+}
+```
+
+
+
+```{r}
+rm(list = ls())
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
