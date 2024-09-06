@@ -190,11 +190,24 @@ welch's, not student's. Can argue why student's
 ```{r}
 # Function to manually calculate t-test p-value between two samples
 # Input takes x and y, both of which are numeric vectors containing the data for the 2 groups we want to compare for the t-test
-# https://statsandr.com/blog/student-s-t-test-in-r-and-by-hand-how-to-compare-two-groups-under-different-scenarios/ helped me understand how to format the function
 
+#' Manual Welch Two Sample t-test
+#'
+#' This function performs a Welch Two Sample t-test manually. 
+#' 
+#' Used for comparing the means of two independent groups 
+#' while accounting for unequal variances and sample sizes.
+#'
+#' @param x Numeric vector representing the first sample.
+#' @param y Numeric vector representing the second sample.
+#'
+#' @return List containing the t-statistic and the p-value of the test.
+#' @export
+#' @examples
+#' 
 manual_t_test <- function(x, y) {
   # Calculate means
-  mean_x <- mean(x, na.rm = TRUE)
+  mean_x <- mean(x, na.rm = TRUE) # check to make sure no NAs
   mean_y <- mean(y, na.rm = TRUE)
   
   # Calculate variances
@@ -369,11 +382,41 @@ min(us_dollars_salary$Annual_Salary)
 *INCLUDE YEARS_EXPERIENCE_FIELD??* Pros/cons of including or not including. Multicollinearity issue?
 
 Do tab, see how heavy on diagonal
+
+After controlling for years of experience, both total and specific to the field, we do not see a statistically significant association between education and salary. Of course, we are not including all possible confounding factors into our regression model, so we're not super confident about this conclusion.
+
+```{r}
+# First do correlation to see if we should include Years_Experience_Field AND Years_Experience_Total
+library(corrplot)
+
+# Create a factor df 
+us_dollars_factor <- us_dollars_salary
+
+# Convert factors to numeric values
+us_dollars_factor$Years_Experience_Total <- as.numeric((us_dollars_factor$Years_Experience_Total))
+us_dollars_factor$Years_Experience_Field <- as.numeric((us_dollars_factor$Years_Experience_Field))
+
+# Make correlation matrix
+cor_matrix <- cor(us_dollars_factor[, c("Years_Experience_Total", "Years_Experience_Field")], 
+                  use = "complete.obs")
+
+# Create the correlation plot
+corrplot(cor_matrix, 
+         method = "circle", 
+         type = "upper", 
+         tl.col = "black", 
+         tl.srt = 45,
+         title = "Correlation Plot of Experience Variables", 
+         addCoef.col = "black")
+
+# There's only a 0.41 correlation if we use the numeric version of the factor-- it's not that high, so justifies including both in the regression model
+```
+
 ```{r}
 library(lmtest)
 
 # Fit regression
-salary_model <- lm(Annual_Salary ~ Education_Level + Years_Experience_Total,
+salary_model <- lm(Annual_Salary ~ Education_Level + Years_Experience_Total + Years_Experience_Field,
                    data = us_dollars_salary)
 
 # Display the summary of the model
@@ -382,8 +425,162 @@ summary_lm <- summary(salary_model)
 print(summary_lm)
 ```
 
-
 ## Problem 3 - Palindromic Numbers
+
+### a. Write function isPalindromic that checks if a given positive integer is a palindrome. Be sure to provide a reasonable error on an invalid input. Be sure to document your function (see instructions above).
+
+* Input: A positive integer
+* Output: A list with two elements:
+* isPalindromic: A logical value indicating if the input is palindromic.
+* reversed: The input with its digits reversed.
+
+```{r}
+#' Check if number is palindromic
+#'
+#' This function checks if a given positive integer is a palindromic number and returns
+#' both a logical value if input is palindromic and the reversed version of the input.
+#'
+#' @param number A positive integer.
+#'
+#' @return A list with two elements: 
+#' - `isPalindromic`: A logical value indicating if the input is palindromic.
+#' - `reversed`: The input with its digits reversed.
+#' 
+#' @examples
+#' isPalindromic(728827)
+#' isPalindromic(39951)
+#' 
+#' @export
+#' 
+isPalindromic <- function(number) {
+  
+  # Check if input is numeric first
+  if (!is.numeric(number)) {
+    
+    # If given a string, try to be nice and convert for user
+    warning("number must be numeric, attempting to convert")
+    number <- as.numeric(number) 
+    
+    if(!is.numeric(number)){ # Check again
+      stop("number must be numeric or convertible")
+    }
+  }
+  # Check if number is positive
+  if(number <= 0){
+    stop("number must be positive")
+  }
+  # Check if number is an integer (no decimals)
+  if(number != as.integer(number)){
+    stop("number must be an integer")
+  }
+
+  # If it passes all those checks we can move on  
+  # Convert the number to a string, reverse it, and convert back to number
+  num_str <- as.character(number)
+  # Reversing code from ChatGPT, asked how to use paste to reverse a string
+  reversed_str <- paste0(rev(strsplit(num_str, NULL)[[1]]), collapse = "")
+  reversed_num <- as.numeric(reversed_str)
+  
+  # Check if the number is palindromic
+  is_palindrome <- (number == reversed_num)
+  
+  # Return results
+  return(list(isPalindromic = is_palindrome, reversed = reversed_num))
+}
+
+# Trying function out
+isPalindromic(728827)
+isPalindromic(39951)
+
+```
+
+
+### b. Create a function nextPalindrome that finds the next palindromic number strictly greater than the input. Be sure to provide a reasonable error on an invalid input.
+
+* Input: A positive integer
+* Output: A vector of length 1 with the next palindromic number greater than the input
+
+```{r}
+#' Find the next palindromic number
+#'
+#' This function finds the next palindromic number that is strictly greater
+#' than the provided positive integer input.
+#'
+#' @param number A positive integer.
+#'
+#' @return A numeric value of the next palindromic number greater than the input.
+#' 
+#' @examples
+#' nextPalindrome(7152)
+#' nextPalindrome(765431537)
+#' 
+#' @export
+#' 
+nextPalindrome <- function(number) {
+  
+  # Check if input is numeric first
+  if (!is.numeric(number)) {
+    # If given a string, try to be nice and convert for user
+    warning("number must be numeric, attempting to convert")
+    number <- as.numeric(number) 
+    
+    if(!is.numeric(number)){ # Check again
+      stop("number must be numeric or convertible")
+    }
+  }
+  # Check if number is positive
+  if(number <= 0){
+    stop("number must be positive")
+  }
+  # Check if number is an integer (no decimals)
+  if(number != as.integer(number)){
+    stop("number must be an integer")
+  }
+  
+  # Start searching from the next number
+  candidate <- number + 1
+  
+  # Function from first question to check if a number is palindromic
+  # Write again inside this so we don't have depend on running part a to do this function
+  is_palindrome <- function(num) {
+    num_str <- as.character(num)
+    reversed_str <- paste0(rev(strsplit(num_str, NULL)[[1]]), collapse = "")
+    return(num_str == reversed_str)
+  }
+  
+  # Loop until a palindromic number is found
+  while (TRUE) {
+    # Check if the candidate is palindromic
+    if (is_palindrome(candidate)) {
+      return(candidate)
+    }
+    # Increment the candidate to check the next number
+    candidate <- candidate + 1
+  }
+}
+
+# Testing function
+nextPalindrome(7152)  # 7227
+nextPalindrome(765431537)  # 765434567
+
+```
+
+### c. Use these functions to find the next palindrome for each of the following:
+
+391
+9928
+19272719
+109
+2
+
+```{r}
+nextPalindrome(391)
+nextPalindrome(9928)
+nextPalindrome(19272719)
+nextPalindrome(109)
+nextPalindrome(2)
+```
+
 
 
 
