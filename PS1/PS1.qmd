@@ -9,6 +9,9 @@ editor: source
 mainfont: Times New Roman
 ---
 
+## Github Link:
+https://github.com/tiffany-wu/Stats506/tree/82d6a77efe3b9cb471a1524e56975965d28183a4/PS1 
+
 ## Problem 1 - Wine Data
 
 ### a. Import the data into a data.frame in R. Use the information in the “wine.names” file to give appropriate column names. (Note: Downloading and unzipping the file can take place outside of your submitted document, but importing the file should be in the submission.)
