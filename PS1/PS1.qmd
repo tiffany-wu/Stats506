@@ -95,8 +95,6 @@ higher_p_count <- sum(wine$Proanthocyanins > wine$Ash)
 
 ### d. Create a table identifying the average value of each variable, providing one row for the overall average, and one row per class with class averages. (This table does not need to be “fancy” but should clearly identify what each value represents.)
 
-*CHECK THAT TABLE IS NEAT ENOUGH*
-
 ```{r}
 # Get overall average for each column (-1 to exclude Class column)
 overall_averages <- colMeans(wine[, -1])
@@ -114,6 +112,10 @@ average_table <- rbind(
   "Class_3" = class_3_avg
 )
 
+# Round
+average_table <- round(average_table, 3)
+
+# Print table
 print(average_table)
 
 ```
@@ -142,10 +144,6 @@ For the level of phenols between Class 1 and Class 3, the p-value of \< 2.2e-16 
 
 Lastly, for the level of phenols between Class 2 and Class 3, the p-value of 1.622e-10 is once again extremely small, meaning there is a statistically significant difference between the phenol levels. Additionally, the confidence interval of \[0.42, 0.72\] does not contain 0, further confirming the statistically significant difference.
 
-*SINCE WE DO MULTIPLE PAIRWISE T-TESTS, DO WE ALSO NEED TO DO AN F-TEST FOR THE INTERPRETATION?? MULTIPLE PAIRWISE T-TESTS WILL INCREASE RISK OF TYPE I ERROR/FALSE POSITIVES\>*
-
-I also performed an F-test (ANOVA) in order to examine whether there is a statistically significant overall difference in phenol levels between the 3 classes to help control the risk of Type 1 errors due to multiple comparisons from the t-tests. The output shows a statistically significant result (p \< 0.05), meaning that at least 1 of the classes has a different mean phenol level compared to the other groups and justifying the statistically significant results from the pairwise t-tests.
-
 ```{r}
 # Use existing function just so we can check answer
 
@@ -158,10 +156,6 @@ phenols_class_3 <- class_3$Total_Phenols
 t.test(phenols_class_1, phenols_class_2)
 t.test(phenols_class_1, phenols_class_3)
 t.test(phenols_class_2, phenols_class_3)
-
-# F-test to see if there's a significant difference between any of the classes
-f_test <- aov(Total_Phenols ~ factor(Class), data = wine)
-summary(f_test) # it's statistically significant
 ```
 
 ### For minor extra credit: (You may use an existing R function to carry out the t-test, or for minor extra credit, manually write your own calculation of the t-test p-values.)
@@ -175,18 +169,12 @@ $$
 Where:
 
 -   ($\bar{X}_1$) and ($\bar{X}_2$) are the sample means of classes 1 and 2.
--   ($n_1$) and ($n_2$) are the sample sizes of classes 1 and 2.
 -   ($s_1^2$) and ($s_2^2$) are the sample variances of classes 1 and 2.
+-   ($n_1$) and ($n_2$) are the sample sizes of classes 1 and 2.
 
 I use the above equation to make my function.
 
-(Attribution of sources: I asked ChatGPT to pull the formula R used for `t.test`'s Welch Two Sample t-test, looked it up  on Wikipedia to confirm, then used ChatGPT again to write it in LaTeX for RMarkdown. I use the equation pulled to write the function.)
-
-
-*roxygen to document function inputs/output!*
-pool.
-
-welch's, not student's. Can argue why student's 
+(Attribution of sources: I asked ChatGPT to pull the formula R used for `t.test`'s Welch Two Sample t-test, then used ChatGPT again to write it in LaTeX for RMarkdown. I use the equation pulled to write the function.)
 
 ```{r}
 # Function to manually calculate t-test p-value between two samples
@@ -203,8 +191,6 @@ welch's, not student's. Can argue why student's
 #' @param y Numeric vector representing the second sample.
 #'
 #' @return List containing the t-statistic and the p-value of the test.
-#' @export
-#' @examples
 #' 
 manual_t_test <- function(x, y) {
   # Calculate means
@@ -253,10 +239,10 @@ askmanager <- read.csv("C:/Users/tiffa/University of Michigan Dropbox/Tiffany Wu
 
 ### b. Clean up the variable names. Simplify them.
 ```{r}
-# Display the original column names
+# Display the original column names to see
 print(colnames(askmanager))
 
-# Manually set simplified column names
+# Set simplified column names
 colnames(askmanager) <- c(
   "Row", "Timestamp", "Age", "Industry", "Job_Title", 
   "Job_Title_Context", "Annual_Salary", "Additional_Compensation", 
@@ -340,14 +326,16 @@ valid_rows <- with(us_dollars, {
 
 ### e. A lot of the incomes are likely false. Eliminate any rows with extremely low or extremely high salaries. I’ll leave the decision of what thresholds to use up to you; you could choose to eliminate only impossible values, or you could restrict the sample to eliminate the extreme values even if they are realistic (e.g. removing the billionaires or the folks making < $1,000 per year). You must justify your choice, along with either a cited source or an exploration the data, or some combination.Report your final sample size.
 
-*GET RID OF NAs?*
+The timestamp on the AskaManager.org dataframe is in the year 2021-2022 in the U.S. Looking at both census.gov[https://www.census.gov/library/publications/2023/demo/p60-279.html] and statista.com[https://www.statista.com/statistics/203183/percentage-distribution-of-household-income-in-the-us/], we see that the median household income was a little under $75,000 in 2022. By plotting both a histogram and a boxplot to explore the data, we see that the distribution of the income in our data is positive skewed, and there are quite a few outliers making a lot more money than the average person in the U.S. in this time frame.
+
+Our strategy to restrict the sample was to eliminate the extreme low values first by removing those making < $1000 per year unless they had a non-0, more than 1000, non-NA value in the Additional_Compensation column. If they had additional compensation greater than 1000 USD, we assumed they had enough money for it to be realistic. Then, we remove the two multimillion and billionaire outliers (10000000 and 102000000) that heavily skewed the distribution. The median income (78551 USD) was still a little higher than the median household income we got looking at the sources above, and looking at the next highest incomes, we see that one says "
+
+The resulting
+
 
 ```{r}
 # Plot Annual Salary distribution
 library(tidyverse)
-
-# Omit NAs-- no NAs in Annual_Salary column
-us_dollars_salary <- subset(us_dollars, !is.na(Annual_Salary))
 
 # Histogram
 us_dollars_salary %>%
@@ -372,9 +360,26 @@ us_dollars_salary %>%
   ylim(0, 500000) + # Adjust as needed for better visualization
   theme_minimal()
 
+
+# Omit NAs-- no NAs in Annual_Salary column
+us_dollars_salary <- subset(us_dollars, !is.na(Annual_Salary))
+
+# Remove those making < $1000 per year unless they had additional compensation following above rules
+us_dollars_salary2 <- us_dollars_salary[
+  !(us_dollars_salary$Annual_Salary < 1000 & 
+    (is.na(us_dollars_salary$Additional_Compensation) |
+       us_dollars_salary$Additional_Compensation < 1000)), 
+]
+
+# Remove specific multimillion and billionaire outliers
+us_dollars_filtered <- us_dollars_salary2[
+  !(us_dollars_salary2$Annual_Salary %in% c(10000000, 102000000)), 
+]
+
 # Get max and min
-max(us_dollars_salary$Annual_Salary)
-min(us_dollars_salary$Annual_Salary)
+max(us_dollars_filtered$Annual_Salary)
+min(us_dollars_filtered$Annual_Salary)
+median(us_dollars_filtered$Annual_Salary)
 ```
 
 
@@ -387,15 +392,15 @@ Do tab, see how heavy on diagonal
 After controlling for years of experience, both total and specific to the field, we do not see a statistically significant association between education and salary. Of course, we are not including all possible confounding factors into our regression model, so we're not super confident about this conclusion.
 
 ```{r}
-# First do correlation to see if we should include Years_Experience_Field AND Years_Experience_Total
-library(corrplot)
-
 # Create a factor df 
 us_dollars_factor <- us_dollars_salary
 
 # Convert factors to numeric values
 us_dollars_factor$Years_Experience_Total <- as.numeric((us_dollars_factor$Years_Experience_Total))
 us_dollars_factor$Years_Experience_Field <- as.numeric((us_dollars_factor$Years_Experience_Field))
+
+cor(us_dollars_factor$Years_Experience_Total, us_dollars_factor$Years_Experience_Field,
+    use = "complete.obs")
 
 # Make correlation matrix
 cor_matrix <- cor(us_dollars_factor[, c("Years_Experience_Total", "Years_Experience_Field")], 
@@ -451,7 +456,6 @@ print(summary_lm)
 #' isPalindromic(728827)
 #' isPalindromic(39951)
 #' 
-#' @export
 #' 
 isPalindromic <- function(number) {
   
