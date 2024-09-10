@@ -9,7 +9,7 @@ editor: source
 mainfont: Times New Roman
 ---
 
-## Github Link:
+## Github Repo Link to Problem Set 1:
 https://github.com/tiffany-wu/Stats506/tree/82d6a77efe3b9cb471a1524e56975965d28183a4/PS1 
 
 ## Problem 1 - Wine Data
@@ -275,17 +275,13 @@ num_obs_after
 
 ### d. Assume no one starts working before age 18. Eliminate any rows for which their age, years of experience in their field, and years of experience total are impossible. Again, confirm the number of observations. (Hint: Making these variables factor may make your life easier.)
 
-*AFTER RESTRICTING THE DATA TO USD???*
+For this question, I first eliminated anyone "Under 18".
 
-*HELP*
+Then, importantly, I assumed that as long as one of the numbers within each factor combination is possible, we should keep that observation. For example, you can be "18-24" and have "5-7 years" for years of experience because if you are 24 and have 5 years of experience, you started working at 19, which is valid (even though if you are 18 and have 5 years of experience that is not valid). As long as there is an age/experience combination that works, I kept the observation.
 
-Non-factor way:
-- Take highest number of age MINUS lowest number for total years of experience: This has to be >= 18
-- Take highest number of yrs exp in field and highest number in yrs exp field. Total has to be >= field exp.
+After than, I made sure that the years of experience in the field had to be less than or equal to the years of experience total.
 
-*YOU CAN BE 18-24 BUT HAVE 5-7 YRS EXP? Can have 5 or 6, but not 7. How to count this???*
-
-Factors/ orders can just do the order
+After doing all these subsets, I ended up with 23310 observations (from 23374 after the last question).
 
 
 ```{r}
@@ -303,44 +299,73 @@ levels(us_dollars$Age)
 levels(us_dollars$Years_Experience_Total)
 levels(us_dollars$Years_Experience_Field)
 
-# Define the question's conditions based on the factor levels
-valid_rows <- with(us_dollars, {
-  (Age == "18-24" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years") & Years_Experience_Field %in% c("1 year or less", "2 - 4 years")) |
+# Redo the order because the levels show us it's wrong
+us_dollars$Age <- factor(us_dollars$Age, 
+                         levels = c("under 18", "18-24", "25-34", "35-44", 
+                                    "45-54", "55-64", "65 or over"), 
+                         ordered = TRUE)
+
+us_dollars$Years_Experience_Total <- factor(us_dollars$Years_Experience_Total, 
+                                            levels = c("1 year or less", "2 - 4 years", "5-7 years", 
+                                                       "8 - 10 years", "11 - 20 years", 
+                                                       "21 - 30 years", "31 - 40 years", 
+                                                       "41 years or more"), 
+                                            ordered = TRUE)
+
+us_dollars$Years_Experience_Field <- factor(us_dollars$Years_Experience_Field, 
+                                            levels = c("1 year or less", "2 - 4 years", "5-7 years", 
+                                                       "8 - 10 years", "11 - 20 years", 
+                                                       "21 - 30 years", "31 - 40 years", 
+                                                       "41 years or more"), 
+                                            ordered = TRUE)
+
+# Filter out Under 18
+valid_rows_age <- subset(us_dollars, 
+                     Age != "under 18")
+
+# Valid years of experience/age combinations-- doing unfactored because it's less confusing than keeping track of numbers
+valid_rows_exp <- subset(valid_rows_age, {
+  (Age == "18-24" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years") & Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years")) |
     
-    (Age == "25-34" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years") &
-     Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years")) |
+    (Age == "25-34" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years") &
+     Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years")) |
     
-  (Age == "35-44" & Years_Experience_Total %in% c("5-7 years", "8 - 10 years", "11 - 20 years") &
-     Years_Experience_Field %in% c("5-7 years", "8 - 10 years", "11 - 20 years")) |
+  (Age == "35-44" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years", "21 - 30 years") &
+     Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years", "21 - 30 years")) |
     
-  (Age == "45-54" & Years_Experience_Total %in% c("11 - 20 years", "21 - 30 years") &
-     Years_Experience_Field %in% c("11 - 20 years", "21 - 30 years")) |
+  (Age == "45-54" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years", "21 - 30 years", "31 - 40 years") &
+     Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years", "21 - 30 years", "31 - 40 years")) |
     
-  (Age == "55-64" & Years_Experience_Total %in% c("21 - 30 years", "31 - 40 years") &
-     Years_Experience_Field %in% c("21 - 30 years", "31 - 40 years")) |
+  (Age == "55-64" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years","21 - 30 years", "31 - 40 years", "41 years or more") &
+     Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years","21 - 30 years", "31 - 40 years", "41 years or more")) |
     
-  (Age == "65 or over" & Years_Experience_Total %in% c("31 - 40 years", "41 years or more") &
-     Years_Experience_Field %in% c("31 - 40 years", "41 years or more")) &
-  (Years_Experience_Total >= Years_Experience_Field) &
-  (Age != "under 18")
+  (Age == "65 or over" & Years_Experience_Total %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years","21 - 30 years", "31 - 40 years", "41 years or more") &
+     Years_Experience_Field %in% c("1 year or less", "2 - 4 years", "5-7 years", "8 - 10 years", "11 - 20 years","21 - 30 years", "31 - 40 years", "41 years or more")) &
+    # Can't have more years of experience in field than years of experience total, use factors here
+  (as.numeric(Years_Experience_Total) >= as.numeric(Years_Experience_Field))
 })
+
+# Number of observations after
+num_obs_after <- nrow(valid_rows_exp)
+num_obs_after
 ```
 
 
 ### e. A lot of the incomes are likely false. Eliminate any rows with extremely low or extremely high salaries. I’ll leave the decision of what thresholds to use up to you; you could choose to eliminate only impossible values, or you could restrict the sample to eliminate the extreme values even if they are realistic (e.g. removing the billionaires or the folks making < $1,000 per year). You must justify your choice, along with either a cited source or an exploration the data, or some combination.Report your final sample size.
 
-The timestamp on the AskaManager.org dataframe is in the year 2021-2022 in the U.S. Looking at both census.gov[https://www.census.gov/library/publications/2023/demo/p60-279.html] and statista.com[https://www.statista.com/statistics/203183/percentage-distribution-of-household-income-in-the-us/], we see that the median household income was a little under $75,000 in 2022. By plotting both a histogram and a boxplot to explore the data, we see that the distribution of the income in our data is positive skewed, and there are quite a few outliers making a lot more money than the average person in the U.S. in this time frame.
+The timestamp on the AskaManager.org dataframe is in the year 2021-2022 in the U.S. Looking at both census.gov[https://www.census.gov/library/publications/2023/demo/p60-279.html] and statista.com[https://www.statista.com/statistics/203183/percentage-distribution-of-household-income-in-the-us/], we see that the median household income was a little under $75,000 in 2022. By plotting both a histogram and a boxplot to explore the data, we see that the distribution of the income in our data is positive skewed, and there are quite a few outlier observations making a lot more money than the average person in the U.S. in this time frame.
 
-Our strategy to restrict the sample was to eliminate the extreme low values first by removing those making < $1000 per year unless they had a non-0, more than 1000, non-NA value in the Additional_Compensation column. If they had additional compensation greater than 1000 USD, we assumed they had enough money for it to be realistic. Then, we remove the two multimillion and billionaire outliers (10000000 and 102000000) that heavily skewed the distribution. The median income (78551 USD) was still a little higher than the median household income we got looking at the sources above, and looking at the next highest incomes, we see that one says "
+Our strategy to restrict the sample was to eliminate the extreme low values first by removing those making < $1000 per year unless they had a non-0, more than 1000, non-NA value in the Additional_Compensation column. If they had additional compensation greater than 1000 USD, we assumed they had enough money for it to be realistic. Then, we remove the billionaire outlier (income of 102000000). The median income in this dataset after those removals was 78551 USD, which is a little higher than the median household income we got looking at the sources above, but it is very close. Because of this, we decide to keep all remaining observations.
 
-The resulting
-
+The resulting dataframe has 23247 observations.
 
 ```{r}
-# Plot Annual Salary distribution
-library(tidyverse)
+# Rename from last question
+us_dollars_salary <- valid_rows_exp
 
-# Histogram
+# Plot Annual Salary distribution
+
+# Histogram, 14 rows greater than 1 mil
 us_dollars_salary %>%
   ggplot(aes(x = Annual_Salary)) +
   geom_histogram(bins = 50, fill = "lightblue", color = "black") +
@@ -349,10 +374,10 @@ us_dollars_salary %>%
     x = "Annual Salary (USD)",
     y = "Frequency"
   ) +
-  xlim(0, 500000) + 
+  xlim(0, 1000000) + 
   theme_minimal()
 
-# Boxplot to help identify outliers
+# Boxplot to help identify outliers, 14 rows greater than 1 mil
 us_dollars_salary %>%
   ggplot(aes(y = Annual_Salary)) +
   geom_boxplot(fill = "lightgreen", color = "black") +
@@ -360,7 +385,7 @@ us_dollars_salary %>%
     title = "Boxplot of Annual Salary",
     y = "Annual Salary (USD)"
   ) +
-  ylim(0, 500000) + # Adjust as needed for better visualization
+  ylim(0, 1000000) + # Adjust as needed for better visualization
   theme_minimal()
 
 
@@ -374,15 +399,18 @@ us_dollars_salary2 <- us_dollars_salary[
        us_dollars_salary$Additional_Compensation < 1000)), 
 ]
 
-# Remove specific multimillion and billionaire outliers
-us_dollars_filtered <- us_dollars_salary2[
-  !(us_dollars_salary2$Annual_Salary %in% c(10000000, 102000000)), 
+# Remove specific  billionaire outlier
+us_dollars_salary3 <- us_dollars_salary2[
+  !(us_dollars_salary2$Annual_Salary == 102000000), 
 ]
 
 # Get max and min
-max(us_dollars_filtered$Annual_Salary)
-min(us_dollars_filtered$Annual_Salary)
-median(us_dollars_filtered$Annual_Salary)
+max(us_dollars_salary3$Annual_Salary)
+min(us_dollars_salary3$Annual_Salary)
+median(us_dollars_salary3$Annual_Salary)
+
+# Get number of observations
+nrow(us_dollars_salary3)
 ```
 
 
@@ -392,41 +420,29 @@ median(us_dollars_filtered$Annual_Salary)
 
 Do tab, see how heavy on diagonal
 
-After controlling for years of experience, both total and specific to the field, we do not see a statistically significant association between education and salary. Of course, we are not including all possible confounding factors into our regression model, so we're not super confident about this conclusion.
+First, we convert the years of experience variables into numeric and get the correlation between years of experience total and years of experience in the field to see if we should include both variables in our regression model. Since the correlation is 0.7601124, which is pretty high, we decide to just use the total years of experience variable.
+
+Controlling for years of total experience, we do see a statistically significant association between education and salary. Of course, we are not including all possible confounding factors into our regression model, so we can't make any causal conclusions.
 
 ```{r}
-# Create a factor df 
-us_dollars_factor <- us_dollars_salary
+# Create a df that converts factors to numbers
+us_dollars_nums <- us_dollars_salary3
 
 # Convert factors to numeric values
-us_dollars_factor$Years_Experience_Total <- as.numeric((us_dollars_factor$Years_Experience_Total))
-us_dollars_factor$Years_Experience_Field <- as.numeric((us_dollars_factor$Years_Experience_Field))
+us_dollars_nums$Years_Experience_Total <- as.numeric((us_dollars_salary3$Years_Experience_Total))
+us_dollars_nums$Years_Experience_Field <- as.numeric((us_dollars_salary3$Years_Experience_Field))
 
-cor(us_dollars_factor$Years_Experience_Total, us_dollars_factor$Years_Experience_Field,
+# Correlation
+cor(us_dollars_nums$Years_Experience_Total, us_dollars_nums$Years_Experience_Field,
     use = "complete.obs")
-
-# Make correlation matrix
-cor_matrix <- cor(us_dollars_factor[, c("Years_Experience_Total", "Years_Experience_Field")], 
-                  use = "complete.obs")
-
-# Create the correlation plot
-corrplot(cor_matrix, 
-         method = "circle", 
-         type = "upper", 
-         tl.col = "black", 
-         tl.srt = 45,
-         title = "Correlation Plot of Experience Variables", 
-         addCoef.col = "black")
-
-# There's only a 0.41 correlation if we use the numeric version of the factor-- it's not that high, so justifies including both in the regression model
 ```
 
 ```{r}
 library(lmtest)
 
 # Fit regression
-salary_model <- lm(Annual_Salary ~ Education_Level + Years_Experience_Total + Years_Experience_Field,
-                   data = us_dollars_salary)
+salary_model <- lm(Annual_Salary ~ Education_Level + Years_Experience_Total,
+                   data = us_dollars_salary3)
 
 # Display the summary of the model
 summary_lm <- summary(salary_model)
@@ -485,12 +501,21 @@ isPalindromic <- function(number) {
   # If it passes all those checks we can move on  
   # Convert the number to a string, reverse it, and convert back to number
   num_str <- as.character(number)
-  # Reversing code from ChatGPT, asked how to use paste to reverse a string
-  reversed_str <- paste0(rev(strsplit(num_str, NULL)[[1]]), collapse = "")
-  reversed_num <- as.numeric(reversed_str)
   
-  # Check if the number is palindromic
-  is_palindrome <- (number == reversed_num)
+  # Reversing code from ChatGPT, asked how to use paste to reverse a string
+  # Reverse string without converting back to numeric first for cases where number ends in 0
+  reversed_str <- paste0(rev(strsplit(num_str, NULL)[[1]]), collapse = "")
+  
+  # Check if the number is palindromic by comparing the string directly
+  is_palindrome <- (num_str == reversed_str)
+  
+  # Check if the reversed number ends in a zero: ChatGPT helped with the grepl string manipulation.
+  if (grepl("0$", num_str)) {
+    message("The reversed number ends in a zero. Outputting the reversed string.")
+    reversed_num <- reversed_str
+  } else {
+    reversed_num <- as.numeric(reversed_str)
+  }
   
   # Return results
   return(list(isPalindromic = is_palindrome, reversed = reversed_num))
@@ -499,6 +524,7 @@ isPalindromic <- function(number) {
 # Trying function out
 isPalindromic(728827)
 isPalindromic(39951)
+isPalindromic(120)
 
 ```
 
@@ -570,6 +596,7 @@ nextPalindrome <- function(number) {
 # Testing function
 nextPalindrome(7152)  # 7227
 nextPalindrome(765431537)  # 765434567
+nextPalindrome(120)
 
 ```
 
