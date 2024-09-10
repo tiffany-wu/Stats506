@@ -10,7 +10,7 @@ mainfont: Times New Roman
 ---
 
 ## Github Repo Link to Problem Set 1:
-https://github.com/tiffany-wu/Stats506/tree/82d6a77efe3b9cb471a1524e56975965d28183a4/PS1 
+[https://github.com/tiffany-wu/Stats506/tree/82d6a77efe3b9cb471a1524e56975965d28183a4/PS1](https://github.com/tiffany-wu/Stats506/tree/82d6a77efe3b9cb471a1524e56975965d28183a4/PS1) 
 
 ## Problem 1 - Wine Data
 
@@ -260,6 +260,8 @@ print(colnames(askmanager))
 ```
 
 ### c. Restrict the data to those being paid in US dollars (USD). Show that it worked by confirming the number of observations before and after restricting the data.
+
+Below we show that the number of observations decreased from 28062 to 23374.
 ```{r}
 # Number of observations before
 num_obs_b4 <- nrow(askmanager)
@@ -282,7 +284,6 @@ Then, importantly, I assumed that as long as one of the numbers within each fact
 After than, I made sure that the years of experience in the field had to be less than or equal to the years of experience total.
 
 After doing all these subsets, I ended up with 23310 observations (from 23374 after the last question).
-
 
 ```{r}
 # Number of observations before (after restricting to USD)
@@ -353,7 +354,7 @@ num_obs_after
 
 ### e. A lot of the incomes are likely false. Eliminate any rows with extremely low or extremely high salaries. I’ll leave the decision of what thresholds to use up to you; you could choose to eliminate only impossible values, or you could restrict the sample to eliminate the extreme values even if they are realistic (e.g. removing the billionaires or the folks making < $1,000 per year). You must justify your choice, along with either a cited source or an exploration the data, or some combination.Report your final sample size.
 
-The timestamp on the AskaManager.org dataframe is in the year 2021-2022 in the U.S. Looking at both census.gov[https://www.census.gov/library/publications/2023/demo/p60-279.html] and statista.com[https://www.statista.com/statistics/203183/percentage-distribution-of-household-income-in-the-us/], we see that the median household income was a little under $75,000 in 2022. By plotting both a histogram and a boxplot to explore the data, we see that the distribution of the income in our data is positive skewed, and there are quite a few outlier observations making a lot more money than the average person in the U.S. in this time frame.
+The timestamp on the AskaManager.org dataframe is in the year 2021-2022 in the U.S. Looking at both websites (linked) on [census.gov](https://www.census.gov/library/publications/2023/demo/p60-279.html) and [statista.com](https://www.statista.com/statistics/203183/percentage-distribution-of-household-income-in-the-us/), we see that the median household income was a little under $75,000 in 2022. By plotting both a histogram and a boxplot to explore the data, we see that the distribution of the income in our data is positive skewed, and there are quite a few outlier observations making a lot more money than the average person in the U.S. in this time frame.
 
 Our strategy to restrict the sample was to eliminate the extreme low values first by removing those making < $1000 per year unless they had a non-0, more than 1000, non-NA value in the Additional_Compensation column. If they had additional compensation greater than 1000 USD, we assumed they had enough money for it to be realistic. Then, we remove the billionaire outlier (income of 102000000). The median income in this dataset after those removals was 78551 USD, which is a little higher than the median household income we got looking at the sources above, but it is very close. Because of this, we decide to keep all remaining observations.
 
@@ -415,10 +416,6 @@ nrow(us_dollars_salary3)
 
 
 ### f. (Optional) If you want to see this analysis through for no credit, answer the research question of whether there is a statistical association between education and salary, controlling for years of experience.
-
-*INCLUDE YEARS_EXPERIENCE_FIELD??* Pros/cons of including or not including. Multicollinearity issue?
-
-Do tab, see how heavy on diagonal
 
 First, we convert the years of experience variables into numeric and get the correlation between years of experience total and years of experience in the field to see if we should include both variables in our regression model. Since the correlation is 0.7601124, which is pretty high, we decide to just use the total years of experience variable.
 
@@ -509,14 +506,15 @@ isPalindromic <- function(number) {
   # Check if the number is palindromic by comparing the string directly
   is_palindrome <- (num_str == reversed_str)
   
-  # Check if the reversed number ends in a zero: ChatGPT helped with the grepl string manipulation.
-  if (grepl("0$", num_str)) {
-    message("The reversed number ends in a zero. Outputting the reversed string.")
+  # Check if the reversed number ends with a zero
+  if (grepl("^0", reversed_str)) {
+    message("The number ends with a zero. Outputting the reversed string.")
     reversed_num <- reversed_str
-  } else {
+  } 
+  # All other numbers
+  else {
     reversed_num <- as.numeric(reversed_str)
   }
-  
   # Return results
   return(list(isPalindromic = is_palindrome, reversed = reversed_num))
 }
@@ -548,7 +546,6 @@ isPalindromic(120)
 #' nextPalindrome(7152)
 #' nextPalindrome(765431537)
 #' 
-#' @export
 #' 
 nextPalindrome <- function(number) {
   
@@ -597,6 +594,7 @@ nextPalindrome <- function(number) {
 nextPalindrome(7152)  # 7227
 nextPalindrome(765431537)  # 765434567
 nextPalindrome(120)
+nextPalindrome(012)
 
 ```
 
