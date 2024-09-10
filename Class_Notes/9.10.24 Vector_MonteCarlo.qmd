@@ -1,0 +1,318 @@
+---
+title: "9.10.24 Vector_MonteCarlo"
+format: html
+editor: visual
+---
+
+```{r}
+# Clear environment
+rm(list = ls())
+```
+
+# From Quiz 1
+```{r}
+x <- c(8, 2, -8)
+y <- x[x > 3]
+sum(x + y)
+```
+
+# 9.10.24 Notes
+
+## Vectorization
+```{r}
+## Not vectorized
+x <- 0:500
+
+s0 <- 0
+for (i in seq_along(x)) {
+  s0 <- s0 + x[i]
+}
+
+## Vectorized
+s1 <- sum(x)  # 125250
+
+## Do we get the same sum? Yes
+s0 == s1
+
+# Vectorization is much quicker
+sum(c(2,3,4))
+
+x <- c(5,2,6,1,2,3)
+s0 <- 0
+
+for (i in 1:length(x)){
+  s0 <- s0 + x[i]
+  return(s0) # ONLY works inside a function
+}
+s0
+
+system.time(sum(x)) #not super useful because sum is going too fast. R's timing system can't catch this
+```
+
+## Vectorization is much faster
+```{r}
+# Library for timing comparison, esp. for small times
+library(microbenchmark)
+
+x <- 1:10000
+microbenchmark(a = sum(x),
+               b = {
+                 s0 <- 0
+                 for (i in seq_along(x)) {
+                   s0 <- s0 + x[i]
+                 }
+               })
+# output unit: nanoseconds
+```
+
+# The apply family of functions
+
+```{r}
+list1 <- list(c(1,2,3), c(1), c(1:10))
+length(list1) # 3 things inside list
+length(list1[[2]])
+
+sapply(list1, length)
+
+m <- matrix(c(1,2,3,1,2,3,1,2), nrow = 4)
+
+apply(m, 2, mean) # on matrix m, for each column, calculate mean
+apply(m, 1, mean) # on matrix m, for each row, calculate mean
+apply(m, c(1,2), mean) # On matrix m, for each row and column, calculate mean
+
+m <- matrix(c(1,NA,3,1,2,3,1,2), nrow = 4)
+apply(m, 2, mean)
+apply # ... at end. Can put in a NAMED argument that mean will accept
+apply(m, 2, mean, na.rm=TRUE)
+
+# Want mean of abs value
+m <- matrix(c(1,NA,3,1,2,3,-1,2), nrow = 4)
+
+# Nesting way-- this is confusing
+apply(apply(m, c(1,2), mean), 2, mean, na.rm=TRUE)
+
+# Function way
+#' input: vector k
+#' output: vector of length 1 of average abs value
+abs_and_mean <- function(k, na.rm=FALSE) {
+  mean(abs(k), na.rm=na.rm)
+}
+apply(m, 2, abs_and_mean, na.rm=TRUE)
+
+# Anonymous function way
+apply(m, 2, function(k, na.rm=TRUE) {
+  mean(abs(k), na.rm=na.rm)
+})
+```
+
+A dataframe is a list of vectors that are all the same length.
+
+lapply is for lists, applies function to every element of the list.
+
+```{r}
+list1 <- list(c(1,2,3), c(1), c(1:10))
+lapply(list1, length)
+# lapply returns a list
+
+# sapply returns a vector. "s" is for simplify. If R knows how to simplify to vector, it will. Can be dangerous if list types/dimensions are unsimplifiable/compatible. 
+# Only use sapply if you're certain everything will always be compatible.
+sapply(list1, length) # same answer as a vector
+```
+
+```{r}
+data(mtcars) #df= list of vectors the same length
+
+trial1 <- sapply(mtcars, mean)
+trial1
+
+# vapply is even SAFER than lapply. But we have to give an example of what the output looks like or everything crashes
+
+vapply(mtcars, mean, 1) #single number output, guarantees output is a vector
+vapply(mtcars, mean, 15) # can put any number as example
+
+vapply(mtcars, mean, c(2,2)) # vector of length 2 is the output. But using mean, it can't give this to you, so it will error.
+
+vapply(mtcars, is.numeric, TRUE)
+
+# USE VAPPLY IF YOU WANT FUNCTION TO STAND TEST OF TIME
+```
+
+```{r}
+b <- list(1:3, 1:5)
+b
+a <- c(1,3) # pretend you want to pull out the first number of 1:3 for b and the third number for 1:5
+
+# mapply if no dataframe, mixture of different data types
+mapply(function(x, index){
+  x[index]
+}, x= b, index = a) # don't need x= or index= though
+```
+
+```{r}
+data(iris)
+
+# if you want average, grouped by type
+tapply(iris$Petal.Length, iris$Species, mean)
+```
+
+But apply families hide loops inside the command, so it is NOT vectorized.
+
+Vectorized functions are faster and more efficient, but the only way to do this is to use commands/functions already vectorized in R.
+
+# Vectorized functions
+```{r}
+# Not a vectorized function
+
+#' Generate the negative absolute value of an input
+#' @param x a numeric value
+#' @return the negative absolute value
+negabs <- function(x) {
+  if (x > 0) {
+    return(-x)
+  } else {
+    return(x)
+  }
+}
+
+negabs(5)
+negabs(c(2,-3)) # this won't work because it's not vectorized
+
+# Naive approach to vectorizaiton
+#' Generate the negative absolute value of an input
+#'
+#' This version is naively vectorized
+#' @param x a numeric value
+#' @return the negative absolute value
+negabs2 <- function(x) {
+  for (i in seq_along(x)) { # Don't know length of vector
+    if (x[i] > 0) {
+      x[i] <- -x[i]
+    }
+  }
+  return(x)
+}
+
+negabs2(3)
+
+# Best way to vectorize
+#' A fully vectorized function to generate the negative absolute
+#' value of an input.
+#'
+#' @param x a numeric value
+#' @return the negative absolute value
+negabs3 <- function(x) {
+  return(-abs(x))
+}
+negabs3(3)
+
+negabs4 <- function(x) {
+  -abs(x)
+}
+negabs4(3)
+
+
+x <- -5000:5000
+microbenchmark(negabs2(x), negabs3(x), negabs4(x)) # the simplest negabs4 wins
+```
+
+# Monte Carlo Simulation
+If there's a stat you want an estimate for but you dont' have a closed-form solution, you need to do a simulation.
+
+MC creates a lot of data, simulating a random process and then directly averaging the values of interest. Approximation is close enough.
+
+```{r}
+# First, generate artificial data
+# runif draws data from UNIFORM distribution
+# "pseudo"random. True randomness hard to achieve. COmputers are deterministic.
+# runif uses a "seed" to generate "pseudorandom" number. Seed based on memory your computer has, ID code, screen size, the nanosecond you hit run on computer, etc.
+a = runif(1)
+b = runif(1)
+a == b # FALSE
+
+# R has lots of distributions you can draw from
+hist(rgamma(1000, shape = 4, rate = 2))
+
+# Sample function: sample from numbers 5 to 73, give me 10 numbers drawn without or with replacement
+sample(5:73, 10, replace = TRUE)
+
+sample(0:1, 10, replace = TRUE) # simulating coin flip
+
+# Setting seed
+
+set.seed(28)
+a = runif(1)
+
+set.seed(28)
+b = runif(1)
+
+a == b # TRUE
+
+set.seed(28)
+sample(0:1, 10, replace = TRUE)
+
+set.seed(28)
+sample(0:1, 10, replace = TRUE)
+```
+
+# Example 1: Estimating pi
+
+The area of the square is 
+. The area of the circle is pi
+. This means that the ratio of the area of the circle to the area of the circle (area of circle/area of square) = pi/4
+ 
+. We can therefore draw points from within the square, and use the ratio found within the circle to estimate 
+.
+
+```{r}
+plot(NULL, xlim = c(-1,1), ylim = c(-1,1), asp = 1, xlab = "",
+     ylab = "")
+rect(-1, -1, 1, 1)
+draw.circle(0, 0, 1)
+```
+
+```{r}
+#' Estimates the value of pi by the proportion of points inside a square falling
+#' inside a circle inscribed in that square.
+#' @param n number of iterations
+#' @return estimate of pi
+estimate_pi <- function(n) {
+  xcoord <- runif(n, -1, 1) # x coord of square
+  ycoord <- runif(n, -1, 1) # y coord of square
+  in_circle <- sqrt(xcoord^2 + ycoord^2) <= 1 # inside of circle, vector of TRUEs and FALSEs as output
+  return(4 * sum(in_circle)/n) # estimate of pi, what percentage fall inside of circle vs. outside of circle.
+}
+
+estimate_pi(10000)
+```
+
+```{r}
+# We can re-run it several times to look at the distribution of estimates to see the uncertainty in the Monte Carlo methods:
+
+reps <- 100
+n2 <- vector(length = reps)
+for (i in seq_len(reps)) {
+  n2[i] <- estimate_pi(100)
+}
+n4 <- vector(length = reps)
+for (i in seq_len(reps)) {
+  n4[i] <- estimate_pi(10000)
+}
+n6 <- vector(length = reps)
+for (i in seq_len(reps)) {
+  n6[i] <- estimate_pi(1000000)
+}
+
+boxplot(data.frame(n2, n4, n6))
+abline(h = pi, col = "red")
+```
+
+
+
+
+
+
+
+
+
+
+
