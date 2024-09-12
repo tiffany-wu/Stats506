@@ -97,7 +97,7 @@ apply(apply(m, c(1,2), mean), 2, mean, na.rm=TRUE)
 abs_and_mean <- function(k, na.rm=FALSE) {
   mean(abs(k), na.rm=na.rm)
 }
-apply(m, 2, abs_and_mean, na.rm=TRUE)
+apply(m, 2, abs_and_mean, na.rm=T)
 
 # Anonymous function way
 apply(m, 2, function(k, na.rm=TRUE) {
@@ -307,8 +307,181 @@ abline(h = pi, col = "red")
 ```
 
 
+# 9.12.24 Notes
 
+Monte Carlo simulations for when you want to find info on things without a closed form/no moments/not a standard distribution.
 
+## Basic Example 2 - Estimating percentiles
+
+Let’s estimate percentiles for *t-distributions* with various degrees of freedom.
+
+```{r}
+#First, let’s draw a random sample from the distribution
+
+set.seed(100)
+n <- 10000 # Number of samples
+df <- 3 # Degrees of freedom
+sim <- rt(n, df) # Draw from t-distribution w/ 3 dfs
+
+# histogram -- looks weird b/c t-distribution has heavy tails with small dfs. Had extreme values.
+hist(sim)
+```
+
+What percentage of values from our simulation fall outside standard z-score bounds? (between -1.96 to 1.96)
+```{r}
+# Should be around 5% if a true z-score
+mean(sim < -1.96)
+mean(sim > 1.96)
+```
+
+What critical value do I need to match a certain percentile? 
+
+If our true distribution is a t-dist w/ 3 dfs, these are the critical values we would need:
+```{r}
+# Order the numbers from our simulation
+ordered_sim <- sim[order(sim)]
+head(ordered_sim) # prints out first couple entries
+
+ordered_sim[round(.025*n)]
+ordered_sim[round(.975*n)]
+```
+
+## More advanced percentile example
+```{r}
+mcrep <- 10000                  # Simulation replications
+n <- 30                         # Sample size we are studying
+sim <- rexp(n * mcrep,          # Simulate standard exponential data
+            rate = 1)           # mean = 1/rate
+xmat <- matrix(sim,             # Reshape to matrix. Each column is like 1 random draw of data in the world. Usually in real world, we only get 1 draw.
+               ncol = mcrep)
+mn <- apply(xmat, 2, mean)      # Sample mean of each column (replicate), 2 = column
+std <- apply(xmat, 2, sd)       # Sample SD of each column (replicate)
+se <- std / sqrt(n)             # Standard errors of the mean
+m <- qt(1 - (1 - .95) / 2,      # qt gets your quantiles for your distribution. This gives you the lower tail by default.
+        df = n - 1)             # Multiplier for confidence level
+lcb <- mn - m * se              # lower confidence bounds
+ucb <- mn + m * se              # upper confidence bounds
+
+# Coverage probability is then the proportion of confidence intervals which cover the mean of 1.
+
+cvrg <- sum(lcb < 1 & ucb > 1)/mcrep
+cvrg
+
+# What should be 95% coverage yields only 92.7%.
+```
+
+## Broadcasting
+
+Recycling.
+
+```{r}
+# The 1 and 10 will repeat
+c(1, 10) + c(2, 2, 6, 6)
+
+# This has warning, but still does recycling
+c(1, 10) + c(2, 2, 2)
+```
+
+For Matrices:
+Matrices in R are column-dominant, so columns get filled in first.
+
+```{r}
+m <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8), nrow = 2)
+m
+
+m + 1 # recycling works here, 1 applies to every element of the matrix
+
+m + c(1, 10)
+
+# If you want to center each column:
+m_means <- apply(m, 2, mean)
+m_means
+m - m_means # this wrong
+rep(m_means, each = 2) # to get around the recycling, but this is not v efficient
+
+# How to convert a column-dominant to a row-dominant matrix? Transpose it
+t(m) - m_means
+
+t(t(m)-m_means)
+
+# rowMeans will give you the means of each row, but still ahve to transpose
+m
+rowMeans(m)
+
+# rowMeans will be FASTER than any apply function
+```
+
+## Correlation Coefficients
+
+Pretend you have ~1000 predictors but only 30 n's and want to use correlations to pick which predictors to include.
+
+Don't do this IRL. Just do a penalized regression instead.
+
+```{r}
+# Generate fake correlation matrix
+n <- 30
+m <- 1000
+r <- 0.4 # This is the expected correlation
+y <- rnorm(n)
+# When you're generating correlations
+xmat <- matrix(rep(y, times = m), ncol = m)
+# Reduce the variance in X by the amount added from correlation with y, rnorm provides noise
+xmat <- r * xmat + rnorm(n * m, sd = sqrt(1 - r^2))
+```
+
+```{r}
+library(microbenchmark)
+# First approach, calculate as a loop
+mb1 <- microbenchmark(loop = {
+  r1 <- vector(length = m)
+  for (i in seq_len(m)) {
+    r1[i] <- cor(xmat[, i], y)
+  }
+})
+
+mb2 <- microbenchmark(apply = {
+  r2 <- apply(xmat, 2, function(v) cor(v, y))
+})
+
+all.equal(r1, r2)
+
+mb3 <- microbenchmark(linalg = {
+  rmn <- colMeans(xmat)
+  xmat_c <- xmat - matrix(rep(rmn, each = n), ncol = m)
+  rsd <- apply(xmat, 2, sd)
+  xmat_s <- xmat_c / matrix(rep(rsd, each = n), ncol = m)
+  y_s <- (y - mean(y)) / sd(y)
+  r3 <- y_s %*% xmat_s / (n - 1)
+  r3 <- as.vector(r3)
+})
+
+all.equal(r1, r3)
+
+mb4 <- microbenchmark(linalg_b = {
+  rmn <- colMeans(xmat)
+  xmat_c <- t(t(xmat) - rmn)
+  rvar <- colSums(xmat_c^2) / (dim(xmat)[1] - 1)
+  rsd <- sqrt(rvar)
+  xmat_s <- t(t(xmat_c) / rsd)
+  y_s <- (y - mean(y)) / sd(y)
+  r4 <- y_s %*% xmat_s / (n - 1)
+  r4 <- as.vector(r4)
+})
+
+all.equal(r1, r4)
+
+rbind(mb1, mb2, mb3, mb4)
+
+# The fourth approach using linear algebra and broadcasting is by far the most efficient here.
+```
+
+## Functional programming
+
+R is an object-oriented program. Others are functional programs. R can kind of do some functional programs because functions can be objects in R.
+
+```{r}
+
+```
 
 
 
