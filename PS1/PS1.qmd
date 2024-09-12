@@ -9,7 +9,7 @@ format:
 editor: source
 mainfont: Times New Roman
 ---
-
+ 
 ## Github Repo Link to Problem Set 1:
 [https://github.com/tiffany-wu/Stats506/tree/82d6a77efe3b9cb471a1524e56975965d28183a4/PS1](https://github.com/tiffany-wu/Stats506/tree/82d6a77efe3b9cb471a1524e56975965d28183a4/PS1) 
 
