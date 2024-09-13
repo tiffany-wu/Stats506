@@ -1,0 +1,319 @@
+---
+title: "Problem Set 2"
+author: "Tiffany Wu"
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+editor: source
+mainfont: Times New Roman
+---
+ 
+## Github Repo Link to Problem Set 1:
+[https://github.com/tiffany-wu/Stats506/tree/main/PS2](https://github.com/tiffany-wu/Stats506/tree/main/PS2) 
+
+## Problem 1 - Dice Game
+Let’s play a dice game. It costs $2 to play. You roll a single 6-sided die.
+
+* On a roll of 3 or 5, you win twice your roll.
+* On any other roll, you lose.
+
+The input and output should be:
+
+* Input: The number of dice to roll.
+* Output: Total winnings
+
+### Version 1: Loop
+*set seed inside or outside funciton?*
+
+```{r}
+# Version 1: Using a loop
+
+#' Play Dice Game - Loop Version
+#'
+#' This function simulates a dice game using a loop. It costs $2 to play each round, 
+#' and you roll a single 6-sided die. If the roll is 3 or 5, you win twice your roll; 
+#' otherwise, you lose $2.
+#'
+#' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
+#'
+#' @return Numeric. The total winnings (or losses) after `n` rolls.
+#' 
+#'
+#' @examples
+#' play_dice_loop(10) # Example with 10 rolls
+#'
+#' @export
+play_dice_loop <- function(n) {
+  
+  # Input sanitization -- make sure n is a positive integer
+  # Double bars is logical OR operator, returns TRUE if at least one condition is TRUE
+  if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
+    stop("Error: 'n' must be a positive integer.")
+  }
+  
+  # Setting seed for reproducibility
+#  set.seed(2835) 
+  
+  # Initiate winnings with 0 dollars
+  winnings <- 0
+  
+  for (i in 1:n) {
+    
+    # Roll a 6-sided die-- use sample instead of runif for whole values (stackoverflow.com/questions/69081795)
+    roll <- sample(1:6, 1)
+#   print(roll)
+    
+    # If you get 3 or 5, you win twice your roll
+    if (roll == 3 || roll == 5) {
+      winnings <- winnings + 2 * roll
+#      print(winnings)
+    } else {
+      # Else you lose the 2 dollars it cost to play
+      winnings <- winnings - 2
+ #     print(winnings)
+    }
+  }
+  return(winnings)
+}
+
+play_dice_loop(3)
+play_dice_loop(30000)
+
+```
+
+### Version 2: Vectorized
+```{r}
+#' Play Dice Game - Vectorized Version
+#'
+#' This function simulates a dice game using vectorized functions in R. It costs $2 to play each round, 
+#' and you roll a single 6-sided die. If the roll is 3 or 5, you win twice your roll; 
+#' otherwise, you lose $2.
+#'
+#' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
+#'
+#' @return Numeric. The total winnings (or losses) after `n` rolls.
+#' 
+#' @examples
+#' play_dice_vector(10) # Example with 10 rolls
+#'
+#' @export
+play_dice_vector <- function(n) {
+  
+  # Input sanitization -- make sure n is a positive integer
+  if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
+    stop("Error: 'n' must be a positive integer.")
+  }
+  
+  # Setting seed for reproducibility
+  set.seed(285) 
+  
+  # Roll n times using vectorized function
+  rolls <- sample(1:6, n, replace = TRUE)
+  
+  # Calculate winnings: if roll is 3 or 5, you win twice your roll, otherwise lose $2
+  winnings <- sum(ifelse(rolls == 3 | rolls == 5, 2 * rolls, -2))
+  
+  return(winnings)
+}
+
+
+play_dice_vector(3)
+```
+
+### Version 3: Table
+```{r}
+#' Play Dice Game - Table Version
+#'
+#' This function simulates a dice game by rolling all the dice at once and collapsing the die rolls into a table.
+#' It costs $2 to play each round, and you roll a single 6-sided die. If the roll is 3 or 5, you win twice your roll; 
+#' otherwise, you lose $2.
+#'
+#' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
+#'
+#' @return Numeric. The total winnings (or losses) after `n` rolls.
+#' 
+#' @examples
+#' play_dice_table(10) # Example with 10 rolls
+#'
+#' @export
+play_dice_table <- function(n) {
+  
+  # Input sanitization -- make sure n is a positive integer
+  if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
+    stop("Error: 'n' must be a positive integer.")
+  }
+  
+  # Setting seed for reproducibility
+  set.seed(285)
+  
+  # Roll n times and create a frequency table of results
+  rolls <- sample(1:6, n, replace = TRUE)
+ # print(rolls)
+  roll_counts <-table(factor(rolls, levels = 1:6)) # Use factors to make sure all dice values appear in table (Source: ChatGPT)
+ # print(roll_counts)
+  
+  # Initialize winnings
+  winnings <- 0
+  
+  # Calculate winnings for 3s and 5s-- adjust indexing safely
+  winnings <- winnings + sum(roll_counts[c('3', '5')] * as.numeric(names(roll_counts[c('3', '5')])) * 2, na.rm = TRUE)
+  
+  # Calculate losses for other rolls
+  winnings <- winnings - sum(roll_counts[c('1', '2', '4', '6')] * 2, na.rm = TRUE)
+  
+  return(winnings)
+}
+
+play_dice_table(3)
+```
+
+### Version 4: apply function
+
+```{r}
+#' Play Dice Game - Apply Function Version
+#'
+#' This function simulates a dice game using an apply function. It costs $2 to play each round, 
+#' and you roll a single 6-sided die. If the roll is 3 or 5, you win twice your roll; 
+#' otherwise, you lose $2.
+#'
+#' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
+#'
+#' @return Numeric. The total winnings (or losses) after `n` rolls.
+#' 
+#' @examples
+#' play_dice_apply(10) # Example with 10 rolls
+#'
+#' @export
+play_dice_apply <- function(n) {
+  
+  # Input sanitization -- make sure n is a positive integer
+  if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
+    stop("Error: 'n' must be a positive integer.")
+  }
+  
+  # Setting seed for reproducibility
+  set.seed(285) 
+  
+  # Use sapply to roll the dice n times
+  rolls <- sapply(1:n, function(x) sample(1:6, 1))
+  
+  # Calculate winnings using apply-like structure
+  winnings <- sum(ifelse(rolls == 3 | rolls == 5, 2 * rolls, -2))
+  
+  return(winnings)
+}
+
+play_dice_apply(5)
+```
+
+## b. Demonstrate that all versions work. Do so by running each a few times, once with an input a 3, and once with an input of 3,000.
+```{r}
+# Loop
+play_dice_loop(3)
+play_dice_loop(3000)
+
+# Table
+play_dice_table(3)
+play_dice_table(3000)
+
+# Vector
+play_dice_vector(3)
+play_dice_vector(3000)
+
+# Apply
+play_dice_apply(3)
+play_dice_apply(3000)
+
+
+```
+
+## c. Demonstrate that the four versions give the same result. Test with inputs 3 and 3,000. (You will need to add a way to control the randomization.)
+
+*Isn't this the same as the above output??)
+
+## d. Use the microbenchmark package to clearly demonstrate the speed of the implementations. Compare performance with a low input (1,000) and a large input (100,000). Discuss the results.
+
+```{r}
+library(microbenchmark)
+
+# Run the microbenchmark comparison
+benchmark_results <- microbenchmark(
+  loop_1000 = play_dice_loop(1000),
+  vector_1000 = play_dice_vector(1000),
+  table_1000 = play_dice_table(1000),
+  apply_1000 = play_dice_apply(1000),
+  loop_100000 = play_dice_loop(100000),
+  vector_100000 = play_dice_vector(100000),
+  table_100000 = play_dice_table(100000),
+  apply_100000 = play_dice_apply(100000),
+  times = 10
+)
+
+# Print and plot benchmark results
+print(benchmark_results)
+
+boxplot(benchmark_results, main = "Performance Comparison of Dice Game Implementations",
+        ylab = "Time (milliseconds)", las = 2)
+
+```
+Vectorized Approach (vector_1000 and vector_100000): This version is typically the fastest because R is optimized for vectorized operations. It performs all calculations in a single step without needing to iterate over elements, making it highly efficient, especially for large inputs.
+
+Loop Approach (loop_1000 and loop_100000): This implementation is generally slower, especially for large inputs. The loop explicitly iterates over each dice roll, which adds overhead. The performance gap widens as the input size increases.
+
+Table Approach (table_1000 and table_100000): The use of table() with factors helps avoid indexing issues, but this approach is still slower than the vectorized version because it involves extra steps to tabulate counts and handle NA values.
+
+Apply Function (apply_1000 and apply_100000): This version is slightly more efficient than the loop because it leverages sapply, which is optimized but still involves implicit looping. It performs better than the plain loop but is generally slower than direct vectorization.
+
+Input Size Impact:
+
+For 1,000 rolls, all implementations complete relatively quickly, though the differences are still noticeable. The vectorized approach is consistently faster, followed by apply, table, and loop.
+For 100,000 rolls, the differences become much more pronounced. The vectorized version significantly outperforms others, completing the task in much less time compared to the loop-based approaches, which slow down considerably as the number of iterations increases.
+Conclusion:
+
+Vectorization is the clear winner for performance in R, leveraging the language's strengths in handling large data efficiently.
+Loops and apply functions provide flexibility but come at a performance cost, particularly for larger inputs.
+The table approach, while handling edge cases well, introduces overhead due to frequency tabulation and indexing adjustments.
+
+## e. Do you think this is a fair game? Defend your decision with evidence based upon a Monte Carlo simulation.
+
+*Just using play_dice_vector okay since all results are the same??*
+
+Monte Carlo Simulation
+We'll use a Monte Carlo simulation to estimate the expected value of the game by running a large number of trials. This approach will help us determine whether the player wins or loses on average.
+
+Steps:
+Simulate a large number of games (e.g., 100,000).
+For each game, simulate the dice rolls and calculate the winnings.
+Compute the average winnings across all simulations.
+If the average winnings are negative, the game is unfair.
+
+```{r}
+# Monte Carlo simulation to evaluate game fairness
+simulate_game <- function(n_sim) {
+  set.seed(16)
+  
+  winnings <- replicate(n_sim, play_dice_vector(1)) # Using vectorized version for speed
+  
+  mean_winnings <- mean(winnings)
+  
+  return(mean_winnings)
+}
+
+# Simulate 100,000 games
+set.seed(16)
+average_winnings <- simulate_game(100000)
+print(average_winnings)
+
+# Assess fairness
+if (average_winnings < 0) {
+  print("The game is not fair; on average, you lose money.")
+} else if (average_winnings > 0) {
+  print("The game is favorable; on average, you win money.")
+} else {
+  print("The game is fair; on average, you break even.")
+}
+
+```
+
