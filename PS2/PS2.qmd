@@ -54,7 +54,7 @@ play_dice_loop <- function(n) {
   }
   
   # Setting seed for reproducibility
-#  set.seed(2835) 
+  set.seed(285) 
   
   # Initiate winnings with 0 dollars
   winnings <- 0
@@ -65,9 +65,9 @@ play_dice_loop <- function(n) {
     roll <- sample(1:6, 1)
 #   print(roll)
     
-    # If you get 3 or 5, you win twice your roll
+    # If you get 3 or 5, you win twice your roll (minus the 2 it cost to play)
     if (roll == 3 || roll == 5) {
-      winnings <- winnings + 2 * roll
+      winnings <- winnings + 2 * roll - 2
 #      print(winnings)
     } else {
       # Else you lose the 2 dollars it cost to play
@@ -113,7 +113,7 @@ play_dice_vector <- function(n) {
   rolls <- sample(1:6, n, replace = TRUE)
   
   # Calculate winnings: if roll is 3 or 5, you win twice your roll, otherwise lose $2
-  winnings <- sum(ifelse(rolls == 3 | rolls == 5, 2 * rolls, -2))
+  winnings <- sum(ifelse(rolls == 3 | rolls == 5, 2 * rolls - 2, -2))
   
   return(winnings)
 }
@@ -160,6 +160,9 @@ play_dice_table <- function(n) {
   # Calculate winnings for 3s and 5s-- adjust indexing safely
   winnings <- winnings + sum(roll_counts[c('3', '5')] * as.numeric(names(roll_counts[c('3', '5')])) * 2, na.rm = TRUE)
   
+  # Subtract the cost of playing (2 dollars per roll) from total winnings
+  winnings <- winnings - (sum(roll_counts[c('3', '5')]) * 2)
+  
   # Calculate losses for other rolls
   winnings <- winnings - sum(roll_counts[c('1', '2', '4', '6')] * 2, na.rm = TRUE)
   
@@ -200,12 +203,12 @@ play_dice_apply <- function(n) {
   rolls <- sapply(1:n, function(x) sample(1:6, 1))
   
   # Calculate winnings using apply-like structure
-  winnings <- sum(ifelse(rolls == 3 | rolls == 5, 2 * rolls, -2))
+  winnings <- sum(ifelse(rolls == 3 | rolls == 5, 2 * rolls - 2, -2))
   
   return(winnings)
 }
 
-play_dice_apply(5)
+play_dice_apply(3)
 ```
 
 ## b. Demonstrate that all versions work. Do so by running each a few times, once with an input a 3, and once with an input of 3,000.
@@ -278,6 +281,7 @@ The table approach, while handling edge cases well, introduces overhead due to f
 
 ## e. Do you think this is a fair game? Defend your decision with evidence based upon a Monte Carlo simulation.
 
+# Q
 *Just using play_dice_vector okay since all results are the same??*
 
 Monte Carlo Simulation
@@ -289,12 +293,19 @@ For each game, simulate the dice rolls and calculate the winnings.
 Compute the average winnings across all simulations.
 If the average winnings are negative, the game is unfair.
 
+# Q
+*WHAT NUMBER GOES INSIDE THE PLAY_DICE_VECTOR FUNCTION???????*
+
 ```{r}
 # Monte Carlo simulation to evaluate game fairness
 simulate_game <- function(n_sim) {
-  set.seed(16)
+  set.seed(285)
   
-  winnings <- replicate(n_sim, play_dice_vector(1)) # Using vectorized version for speed
+  # Pick a random number (integer) of times to roll the dice in each game
+  runs <- sample(1:1000, 1)
+  
+  # Replicate the game n_sim (100000) times
+  winnings <- replicate(n_sim, play_dice_vector(runs)) # Using vectorized version for speed
   
   mean_winnings <- mean(winnings)
   
@@ -302,7 +313,7 @@ simulate_game <- function(n_sim) {
 }
 
 # Simulate 100,000 games
-set.seed(16)
+set.seed(285)
 average_winnings <- simulate_game(100000)
 print(average_winnings)
 
@@ -316,4 +327,189 @@ if (average_winnings < 0) {
 }
 
 ```
+
+## Problem 2 - Linear Regression
+
+Download the cars data set available at https://corgis-edu.github.io/corgis/csv/cars/. The goal is to examine the relationship between torque and highway gas mileage.
+```{r}
+library(readr)
+library(tidyverse)
+cars <- read_csv("cars.csv")
+```
+
+### a. The names of the variables in this data are way too long. Rename the columns of the data to more reasonable lengths.
+```{r}
+# What are the current names?
+names(cars)
+
+# Rename columns to shorter, more readable names
+cars2 <- cars %>%
+  rename(
+    height = "Dimensions.Height",
+    length_dim = "Dimensions.Length", # Because length is also a command in R
+    width = "Dimensions.Width",
+    driveline = "Engine Information.Driveline",
+    engine_type = "Engine Information.Engine Type",
+    hybrid = "Engine Information.Hybrid",
+    gears = "Engine Information.Number of Forward Gears",
+    transmission = "Engine Information.Transmission",
+    city_mpg = "Fuel Information.City mpg",
+    fuel_type = "Fuel Information.Fuel Type",
+    highway_mpg = "Fuel Information.Highway mpg",
+    classification = "Identification.Classification",
+    id = "Identification.ID",
+    make = "Identification.Make",
+    model_year = "Identification.Model Year",
+    year = "Identification.Year",
+    horsepower = "Engine Information.Engine Statistics.Horsepower",
+    torque = "Engine Information.Engine Statistics.Torque"
+  )
+
+```
+
+### b. Restrict the data to cars whose Fuel Type is “Gasoline”.
+
+```{r}
+# Filter
+gasoline_cars <- cars2 %>%
+  filter(fuel_type == "Gasoline")
+```
+
+### Examine the distribution of highway gas mileage. Consider whether a transformation could be used. If so, generate the transformed variable and use this variable going forward. If not, provide a short justification.
+
+Based on the histogram and boxplot below, we can see that the data is right-skewed, with one car that has an mpg of 223 skewing the data.
+
+*GETTING RID OF THE OUTLIER IS THE SOLUTION?*
+```{r}
+# Examine distribution
+ggplot(gasoline_cars, aes(x = highway_mpg)) +
+  geom_histogram(bins = 30, color = "black", fill = "skyblue") +
+  labs(
+    title = "Distribution of Highway Gas Mileage",
+    x = "Highway MPG",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+ggplot(gasoline_cars, aes(y = highway_mpg)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(
+    title = "Box Plot of Highway Gas Mileage",
+    y = "Highway MPG"
+  ) +
+  theme_minimal()
+
+# What is the max? This is an outlier
+summary(gasoline_cars$highway_mpg) # 223
+
+# Get skewness/kurtosis
+library(psych)
+psych::describe(gasoline_cars$highway_mpg)
+
+
+# If we get rid of the outlier, it's better.
+gasoline_cars2 <- gasoline_cars %>% filter(highway_mpg <100)
+ggplot(g, aes(x = highway_mpg)) +
+  geom_histogram(bins = 30, color = "black", fill = "skyblue") +
+  labs(
+    title = "Distribution of Highway Gas Mileage",
+    x = "Highway MPG",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+psych::describe(gasoline_cars2$highway_mpg) # if get rid of outlier, skewness is now <1, at 0.46
+```
+The skewness() function (from the e1071 package) calculates the skewness. A skewness value > |1| suggests significant skewness.
+Transformation:
+If skewness is high, apply a log transformation and visualize the transformed data.
+If skewness is low or data is approximately normal, no transformation is needed.
+
+### d. Fit a linear regression model predicting MPG on the highway. The predictor of interest is torque. Control for:
+
+The horsepower of the engine
+All three dimensions of the car
+The year the car was released, as a categorical variable.
+
+Briefly discuss the estimated relationship between torque and highway MPG. Be precise about the interpretation of the estimated coefficient.
+
+```{r}
+library(lmtest)
+
+# Make year a categorical variable
+gasoline_cars2 <- gasoline_cars2 %>%
+  mutate(year = as.factor(year))
+
+# Regression
+reg1 <- lm(highway_mpg ~ torque + horsepower + height + length_dim + width + year, 
+                   data = gasoline_cars2)
+
+summary(reg1)
+
+```
+
+### e. It seems reasonable that there may be an interaction between torque and horsepower. Refit the model (with lm) and generate an interaction plot, showing how the relationship between torque and MPG changes as horsepower changes. Choose reasonable values of torque, and show lines for three different reasonable values of horsepower.
+
+```{r}
+# Refit model with interaction
+interaction_model <- lm(highway_mpg ~ torque * horsepower + height + length_dim + width + year, 
+                        data = gasoline_cars2)
+
+summary(interaction_model)
+```
+
+
+```{r}
+# Interaction plot
+# Median, 25th percentile, and 75th percentile of horsepower
+horsepower_values <- quantile(gasoline_cars$horsepower, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+
+# Create a sequence of reasonable torque values 
+torque_values <- seq(100, 700, by = 10)
+
+ggplot(data = gasoline_cars2, aes(x = torque, y = highway_mpg)) +
+  geom_point(alpha = 0.4, color = "grey") +  # Scatter plot of actual data for context
+  stat_smooth(method = "lm", formula = y ~ x * horsepower, se = FALSE, aes(color = as.factor(horsepower_values)), data = gasoline_cars2, size = 1) +
+  scale_color_manual(
+    values = c("red", "blue", "green"),
+    labels = c("Low HP", "Median HP", "High HP")
+  ) +
+  labs(
+    title = "Interaction Plot: Torque and Horsepower on Highway MPG",
+    x = "Torque (lb-ft)",
+    y = "Predicted Highway MPG",
+    color = "Horsepower"
+  ) +
+  theme_minimal()
+```
+
+### f. Calculate from d. manually (without using lm) by first creating a proper design matrix, then using matrix algebra to estimate. Confirm that you get the same result as lm did prior.
+
+```{r}
+# Extract the relevant variables
+X_mat <- gasoline_cars2 %>%
+  mutate(year_2009 = ifelse(year == 2009, 1, 0),
+         year_2010 = ifelse(year == 2010, 1, 0),
+         year_2011 = ifelse(year == 2011, 1, 0),
+         year_2012 = ifelse(year == 2012, 1, 0),) %>%
+  select(year, torque, horsepower, height, length_dim, width)
+
+# Add an intercept column manually
+X_mat <- cbind(intercept = 1, X_mat)
+
+# Convert the data frame to a numeric matrix
+X_mat <- as.matrix(X_mat)
+
+# Make y matrix
+y_mat <- gasoline_cars2 %>% select(highway_mpg)
+y_mat <- as.matrix(y_mat)
+
+# Check dimensions to ensure compatibility
+cat("Dimensions of X_mat:", dim(X_mat), "\n")
+cat("Length of y:", length(y), "\n")
+
+# Compute using the formula (X'X)^(-1)X'y
+beta_hat <- solve(t(X_mat) %*% X_mat) %*% t(X_mat) %*% y_mat
+```
+
 
