@@ -391,7 +391,7 @@ m
 
 m + 1 # recycling works here, 1 applies to every element of the matrix
 
-m + c(1, 10)
+m * c(1, 10)
 
 # If you want to center each column:
 m_means <- apply(m, 2, mean)
@@ -484,8 +484,130 @@ R is an object-oriented program. Others are functional programs. R can kind of d
 ```
 
 
+# 9.17.24 Notes
 
+## Debugging functions
 
+### Print statement
+Use with paste so you can keep track of everything you're printing.
+```{r}
+#' Calculate sample skewness
+#' @param x a numeric vector
+#' @return skewness
+skewness <- function(x) {
+  xbar <- mean(x)
+  print(paste("xbar:", xbar))
+  xc <- x - xbar
+  print(paste("xc:", paste(xc, collapse = ", ")))
+  num <- sum(xc^3)
+  denom <- sum(xc^2)
+  print(paste("Num:", num))
+  print(paste("Denom:", denom))
+  return(num/(denom^(3/2)))
+}
+skewness(sample(1:100, 10, TRUE))
+```
 
+### Double arrow
 
+If you're printing too many times, that's probably not the best way to debug.
+
+Can use double arrow to put things into global environment. BUT you'll need to change it back to single arrow or function will throw an error.
+
+```{r}
+#' Calculate sample skewness
+#' @param x a numeric vector
+#' @return skewness
+skewness <- function(x) {
+  xbar <- mean(x)
+  print(paste("xbar:", xbar))
+  xc <- x - xbar
+  print(paste("xc:", paste(xc, collapse = ", ")))
+  num <- sum(xc^3)
+  denom <- sum(xc^2)
+#  print(paste("Num:", num))
+#  print(paste("Denom:", denom))
+  return(num/(denom^(3/2)))
+}
+skewness(sample(1:100, 10, TRUE))
+```
+
+## The best way to debug
+### THE BROWSER
+
+Have to take the browser out after you use it for the function to run though.
+
+Don't put browser inside a for-loop, or you'll get stuck. Put it RIGHT BEFORE the for loop begins.
+
+```{r}
+#' Calculate sample skewness
+#' @param x a numeric vector
+#' @return skewness
+skewness <- function(x) {
+  xbar <- mean(x)
+  print(paste("xbar:", xbar))
+  xc <- x - xbar
+ # browser()
+  print(paste("xc:", paste(xc, collapse = ", ")))
+  num <- sum(xc^3)
+  denom <<- sum(xc^2)
+#  print(paste("Num:", num))
+#  print(paste("Denom:", denom))
+  return(num/(denom^(3/2)))
+}
+
+skewness(sample(1:100, 10, TRUE))
+```
+
+### IF you want to start a browser whenever
+```{r}
+debug(summarize)
+#summarize(sample(1:100, 10, TRUE))
+#undebug(summarize)
+```
+
+```{r}
+foo <- function() {
+  bar()
+}
+
+bar <- function() {
+  baz()
+}
+
+baz <- function() {
+  print(1)
+}
+
+foo()
+
+#debug(foo)
+foo()
+```
+
+### Traceback
+
+4: stop("error!") at #2
+3: baz() at #2
+2: bar() at #2
+1: foo()
+
+The "at #2" stands for the second line of baz function.
+```{r}
+foo <- function() {
+  bar()
+}
+
+bar <- function() {
+  baz()
+}
+
+baz <- function() {
+  stop("error!")
+}
+
+foo()
+
+traceback() # Shows callstack
+```
 

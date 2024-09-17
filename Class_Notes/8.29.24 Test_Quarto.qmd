@@ -264,6 +264,7 @@ foo <- function(){
 }
 
 foo()
+foo
 
 # Z-score
 # Make df with fake data
