@@ -62,7 +62,7 @@ play_dice_loop <- function(n) {
   for (i in 1:n) {
     
     # Roll a 6-sided die-- use sample instead of runif for whole values (stackoverflow.com/questions/69081795)
-    roll <- sample(1:6, 1)
+    roll <- sample(1:6, 1, replace = TRUE)
 #   print(roll)
     
     # If you get 3 or 5, you win twice your roll (minus the 2 it cost to play)
@@ -200,7 +200,7 @@ play_dice_apply <- function(n) {
   set.seed(285) 
   
   # Use sapply to roll the dice n times
-  rolls <- sapply(1:n, function(x) sample(1:6, 1))
+  rolls <- sapply(1:n, function(x) sample(1:6, 1, replace = TRUE))
   
   # Calculate winnings using apply-like structure
   winnings <- sum(ifelse(rolls == 3 | rolls == 5, 2 * rolls - 2, -2))
