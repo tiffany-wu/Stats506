@@ -27,6 +27,10 @@ The input and output should be:
 ### Version 1: Loop
 *set seed inside or outside funciton?*
 
+Take in seed to set inside function. Set right before you need to randomize.
+
+Take in ARGUMENT FOR SEED.
+
 ```{r}
 # Version 1: Using a loop
 
@@ -37,15 +41,17 @@ The input and output should be:
 #' otherwise, you lose $2.
 #'
 #' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
+#' @param seed Optional. Numeric. The seed for the random number generator.
 #'
 #' @return Numeric. The total winnings (or losses) after `n` rolls.
 #' 
 #'
 #' @examples
-#' play_dice_loop(10) # Example with 10 rolls
+#' play_dice_loop(10, seed = 123) # Example with 10 rolls with seed of 123
 #'
 #' @export
-play_dice_loop <- function(n) {
+#' 
+play_dice_loop <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
   # Double bars is logical OR operator, returns TRUE if at least one condition is TRUE
@@ -53,15 +59,25 @@ play_dice_loop <- function(n) {
     stop("Error: 'n' must be a positive integer.")
   }
   
-  # Setting seed for reproducibility
-  set.seed(285) 
+  # Input sanitization -- make sure if seed is provided it's numeric
+  if (!is.null(seed) && !is.numeric(seed)) {
+    stop("Error: 'seed' must be numeric.")
+  }
+  
+  # Set seed if provided
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
+  
+  # Setting seed for reproducibility manually
+ # set.seed(285) 
   
   # Initiate winnings with 0 dollars
   winnings <- 0
   
   for (i in 1:n) {
     
-    # Roll a 6-sided die-- use sample instead of runif for whole values (stackoverflow.com/questions/69081795)
+    # Roll a 6-sided die-- use sample instead of runif for whole values 
     roll <- sample(1:6, 1, replace = TRUE)
 #   print(roll)
     
@@ -78,7 +94,7 @@ play_dice_loop <- function(n) {
   return(winnings)
 }
 
-play_dice_loop(3)
+play_dice_loop(3, seed = 5)
 play_dice_loop(30000)
 
 ```
@@ -92,22 +108,30 @@ play_dice_loop(30000)
 #' otherwise, you lose $2.
 #'
 #' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
-#'
+#' @param seed Optional. Numeric. The seed for the random number generator.
+#' 
 #' @return Numeric. The total winnings (or losses) after `n` rolls.
 #' 
 #' @examples
 #' play_dice_vector(10) # Example with 10 rolls
 #'
 #' @export
-play_dice_vector <- function(n) {
+play_dice_vector <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
   if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
     stop("Error: 'n' must be a positive integer.")
   }
   
-  # Setting seed for reproducibility
-  set.seed(285) 
+  # Input sanitization -- make sure seed is numeric if provided
+  if (!is.null(seed) && !is.numeric(seed)) {
+    stop("Error: 'seed' must be numeric.")
+  }
+  
+  # Set seed if provided
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
   
   # Roll n times using vectorized function
   rolls <- sample(1:6, n, replace = TRUE)
@@ -119,7 +143,7 @@ play_dice_vector <- function(n) {
 }
 
 
-play_dice_vector(3)
+play_dice_vector(3, seed = 89034892)
 ```
 
 ### Version 3: Table
@@ -131,22 +155,30 @@ play_dice_vector(3)
 #' otherwise, you lose $2.
 #'
 #' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
-#'
+#' @param seed Optional. Numeric. The seed for the random number generator.
+#'  
 #' @return Numeric. The total winnings (or losses) after `n` rolls.
 #' 
 #' @examples
 #' play_dice_table(10) # Example with 10 rolls
 #'
 #' @export
-play_dice_table <- function(n) {
+play_dice_table <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
   if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
     stop("Error: 'n' must be a positive integer.")
   }
   
-  # Setting seed for reproducibility
-  set.seed(285)
+  # Input sanitization -- make sure seed is numeric if provided
+  if (!is.null(seed) && !is.numeric(seed)) {
+    stop("Error: 'seed' must be numeric.")
+  }
+  
+  # Set seed if provided
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
   
   # Roll n times and create a frequency table of results
   rolls <- sample(1:6, n, replace = TRUE)
@@ -182,6 +214,7 @@ play_dice_table(3)
 #' otherwise, you lose $2.
 #'
 #' @param n Positive integer. The number of dice rolls (or rounds) to simulate.
+#' @param seed Optional. Numeric. The seed for the random number generator.
 #'
 #' @return Numeric. The total winnings (or losses) after `n` rolls.
 #' 
@@ -189,15 +222,22 @@ play_dice_table(3)
 #' play_dice_apply(10) # Example with 10 rolls
 #'
 #' @export
-play_dice_apply <- function(n) {
+play_dice_apply <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
   if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
     stop("Error: 'n' must be a positive integer.")
   }
   
-  # Setting seed for reproducibility
-  set.seed(285) 
+  # Input sanitization -- make sure seed is numeric if provided
+  if (!is.null(seed) && !is.numeric(seed)) {
+    stop("Error: 'seed' must be numeric.")
+  }
+  
+  # Set seed if provided
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
   
   # Use sapply to roll the dice n times
   rolls <- sapply(1:n, function(x) sample(1:6, 1, replace = TRUE))
@@ -234,7 +274,25 @@ play_dice_apply(3000)
 
 ## c. Demonstrate that the four versions give the same result. Test with inputs 3 and 3,000. (You will need to add a way to control the randomization.)
 
-*Isn't this the same as the above output??)
+```{r}
+# Loop
+play_dice_loop(3, seed = 285)
+play_dice_loop(3000, seed = 285)
+
+# Table
+play_dice_table(3, seed = 285)
+play_dice_table(3000, seed = 285)
+
+# Vector
+play_dice_vector(3, seed = 285)
+play_dice_vector(3000, seed = 285)
+
+# Apply
+play_dice_apply(3, seed = 285)
+play_dice_apply(3000, seed = 285)
+
+
+```
 
 ## d. Use the microbenchmark package to clearly demonstrate the speed of the implementations. Compare performance with a low input (1,000) and a large input (100,000). Discuss the results.
 
@@ -299,13 +357,13 @@ If the average winnings are negative, the game is unfair.
 ```{r}
 # Monte Carlo simulation to evaluate game fairness
 simulate_game <- function(n_sim) {
-  set.seed(285)
+ # set.seed(285)
   
   # Pick a random number (integer) of times to roll the dice in each game
-  runs <- sample(1:1000, 1)
+ # runs <- sample(100, 1) # FIX THIS AT SOMETHING, RUN WITH DIFFERENT RESULTS. DON'T SET SEED FOR THIS TIME.
   
   # Replicate the game n_sim (100000) times
-  winnings <- replicate(n_sim, play_dice_vector(runs)) # Using vectorized version for speed
+  winnings <- replicate(n_sim, play_dice_vector(100)) # Using vectorized version for speed
   
   mean_winnings <- mean(winnings)
   
@@ -451,65 +509,67 @@ summary(reg1)
 ### e. It seems reasonable that there may be an interaction between torque and horsepower. Refit the model (with lm) and generate an interaction plot, showing how the relationship between torque and MPG changes as horsepower changes. Choose reasonable values of torque, and show lines for three different reasonable values of horsepower.
 
 ```{r}
+library(emmeans)
 # Refit model with interaction
 interaction_model <- lm(highway_mpg ~ torque * horsepower + height + length_dim + width + year, 
                         data = gasoline_cars2)
 
 summary(interaction_model)
+
+# Use `emmeans` to calculate estimated marginal means for the interaction between torque and horsepower
+# Choose reasonable values for torque and specify three values of horsepower for the plot
+torque_values <- seq(90, 770, by = 20) 
+horsepower_values <- quantile(gasoline_cars2$horsepower, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+
+# Generate the estimated marginal means
+em_interaction <- emmeans(interaction_model, ~ torque * horsepower, 
+                          at = list(torque = torque_values, horsepower = horsepower_values))
+
+# Plot the interaction effect using `emmip()`
+emmip(em_interaction, horsepower ~ torque, 
+      at = list(torque = torque_values, horsepower = horsepower_values),
+      xlab = "Torque (lb-ft)", ylab = "Estimated Highway MPG", 
+      main = "Interaction Plot: Torque and Horsepower on Highway MPG",
+      lines = TRUE)
 ```
 
-
-```{r}
-# Interaction plot
-# Median, 25th percentile, and 75th percentile of horsepower
-horsepower_values <- quantile(gasoline_cars$horsepower, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
-
-# Create a sequence of reasonable torque values 
-torque_values <- seq(100, 700, by = 10)
-
-ggplot(data = gasoline_cars2, aes(x = torque, y = highway_mpg)) +
-  geom_point(alpha = 0.4, color = "grey") +  # Scatter plot of actual data for context
-  stat_smooth(method = "lm", formula = y ~ x * horsepower, se = FALSE, aes(color = as.factor(horsepower_values)), data = gasoline_cars2, size = 1) +
-  scale_color_manual(
-    values = c("red", "blue", "green"),
-    labels = c("Low HP", "Median HP", "High HP")
-  ) +
-  labs(
-    title = "Interaction Plot: Torque and Horsepower on Highway MPG",
-    x = "Torque (lb-ft)",
-    y = "Predicted Highway MPG",
-    color = "Horsepower"
-  ) +
-  theme_minimal()
-```
 
 ### f. Calculate from d. manually (without using lm) by first creating a proper design matrix, then using matrix algebra to estimate. Confirm that you get the same result as lm did prior.
 
 ```{r}
-# Extract the relevant variables
-X_mat <- gasoline_cars2 %>%
-  mutate(year_2009 = ifelse(year == 2009, 1, 0),
-         year_2010 = ifelse(year == 2010, 1, 0),
-         year_2011 = ifelse(year == 2011, 1, 0),
-         year_2012 = ifelse(year == 2012, 1, 0),) %>%
-  select(year, torque, horsepower, height, length_dim, width)
+# Get the design matrix
 
-# Add an intercept column manually
-X_mat <- cbind(intercept = 1, X_mat)
+head(model.matrix(highway_mpg ~ torque + horsepower + height + length_dim + width + year, data = gasoline_cars2))
 
-# Convert the data frame to a numeric matrix
-X_mat <- as.matrix(X_mat)
+cars_mat <- model.matrix(highway_mpg ~ torque + horsepower + height + length_dim + width + year, data = gasoline_cars2)
 
-# Make y matrix
-y_mat <- gasoline_cars2 %>% select(highway_mpg)
-y_mat <- as.matrix(y_mat)
+# Remove the 'torque' column since that's the y vector
+X_mat <- cars_mat
 
-# Check dimensions to ensure compatibility
+# y matrix
+y_mat <- gasoline_cars2$highway_mpg
+
+# Check the dimensions to ensure compatibility
 cat("Dimensions of X_mat:", dim(X_mat), "\n")
-cat("Length of y:", length(y), "\n")
+cat("Length of y_mat:", length(y_mat), "\n")
 
-# Compute using the formula (X'X)^(-1)X'y
+# Matrix algebra
+# Manually calculate the regression coefficients using matrix algebra
+# Formula: beta_hat = (X'X)^(-1) X'y
 beta_hat <- solve(t(X_mat) %*% X_mat) %*% t(X_mat) %*% y_mat
+
+print(beta_hat)
+
+# Check against regression
+coefficients(reg1)
+lm_coefs <- coefficients(reg1)
+
+# Equal?
+# Remove names from both vectors to avoid comparison issues with names
+beta_hat_no_names <- as.vector(beta_hat)
+lm_coefs_no_names <- as.vector(lm_coefs)
+
+all.equal(beta_hat_no_names, lm_coefs_no_names)
 ```
 
 
