@@ -14,6 +14,7 @@ mainfont: Times New Roman
 [https://github.com/tiffany-wu/Stats506/tree/main/PS2](https://github.com/tiffany-wu/Stats506/tree/main/PS2) 
 
 ## Problem 1 - Dice Game
+
 Let’s play a dice game. It costs $2 to play. You roll a single 6-sided die.
 
 * On a roll of 3 or 5, you win twice your roll.
@@ -24,12 +25,11 @@ The input and output should be:
 * Input: The number of dice to roll.
 * Output: Total winnings
 
+## a.
+
 ### Version 1: Loop
-*set seed inside or outside funciton?*
 
-Take in seed to set inside function. Set right before you need to randomize.
-
-Take in ARGUMENT FOR SEED.
+All the following functions take in 2 arguments: the number of rolls to simulate and the seed (optional and added for reproducibility in Part c). The output is the total winnings for the set number of rolls and the seed set.
 
 ```{r}
 # Version 1: Using a loop
@@ -49,7 +49,6 @@ Take in ARGUMENT FOR SEED.
 #' @examples
 #' play_dice_loop(10, seed = 123) # Example with 10 rolls with seed of 123
 #'
-#' @export
 #' 
 play_dice_loop <- function(n, seed = NULL) {
   
@@ -68,9 +67,6 @@ play_dice_loop <- function(n, seed = NULL) {
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  
-  # Setting seed for reproducibility manually
- # set.seed(285) 
   
   # Initiate winnings with 0 dollars
   winnings <- 0
@@ -115,7 +111,7 @@ play_dice_loop(30000)
 #' @examples
 #' play_dice_vector(10) # Example with 10 rolls
 #'
-#' @export
+#' 
 play_dice_vector <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
@@ -162,7 +158,6 @@ play_dice_vector(3, seed = 89034892)
 #' @examples
 #' play_dice_table(10) # Example with 10 rolls
 #'
-#' @export
 play_dice_table <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
@@ -183,8 +178,7 @@ play_dice_table <- function(n, seed = NULL) {
   # Roll n times and create a frequency table of results
   rolls <- sample(1:6, n, replace = TRUE)
  # print(rolls)
-  roll_counts <-table(factor(rolls, levels = 1:6)) # Use factors to make sure all dice values appear in table (Source: ChatGPT)
- # print(roll_counts)
+  roll_counts <-table(factor(rolls, levels = 1:6)) # Use factors to make sure all dice values appear in table (Source: ChatGPT, based on the hint to be careful indexing the table.)
   
   # Initialize winnings
   winnings <- 0
@@ -221,7 +215,6 @@ play_dice_table(3)
 #' @examples
 #' play_dice_apply(10) # Example with 10 rolls
 #'
-#' @export
 play_dice_apply <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
@@ -252,6 +245,9 @@ play_dice_apply(3)
 ```
 
 ## b. Demonstrate that all versions work. Do so by running each a few times, once with an input a 3, and once with an input of 3,000.
+
+The output below demonstrates that all versions work, without setting the seed. This means that each output can be different.
+
 ```{r}
 # Loop
 play_dice_loop(3)
@@ -268,11 +264,11 @@ play_dice_vector(3000)
 # Apply
 play_dice_apply(3)
 play_dice_apply(3000)
-
-
 ```
 
 ## c. Demonstrate that the four versions give the same result. Test with inputs 3 and 3,000. (You will need to add a way to control the randomization.)
+
+The output below demonstrates that all versions work with the seed set to 285. As seen below, all versions have 14 dollars as the output for 3 rolls and 1896 dollars as the output for 3000 rolls.
 
 ```{r}
 # Loop
@@ -291,68 +287,67 @@ play_dice_vector(3000, seed = 285)
 play_dice_apply(3, seed = 285)
 play_dice_apply(3000, seed = 285)
 
-
 ```
 
 ## d. Use the microbenchmark package to clearly demonstrate the speed of the implementations. Compare performance with a low input (1,000) and a large input (100,000). Discuss the results.
 
+Based on the results of the microbenchmark package, we see that the vectorized function (Version 2) works best with both a high and low input and has the quickest speed. This makes sense because R is optimized for vectorized operations, and vectors eliminate the overhead of having to loop through things multiple times. The table function is second quickest and creates the tables by counting the frequency of each value in a vector, using vectorized functions like "sum". While this involves sum overhead, such as having to convert data in factors, this is still relatively fast because R is optimized for counting operations. The apply and loop functions are the slowest because they have to loop over rows/columns or over each element in a vector, incurring a greater speed cost for each iteration. In general, in R, operations based on vector operations seem to be faster than those that have row-by-row, column-by-column, or element-by-element operations.
+
+*GET DIFFERENTE RESULTS EACH TIME?*
+
 ```{r}
 library(microbenchmark)
 
+# Set seed so that the microbenchmark numbers stay same for homework writeup
+set.seed(2856)
+
 # Run the microbenchmark comparison
 benchmark_results <- microbenchmark(
-  loop_1000 = play_dice_loop(1000),
-  vector_1000 = play_dice_vector(1000),
-  table_1000 = play_dice_table(1000),
-  apply_1000 = play_dice_apply(1000),
-  loop_100000 = play_dice_loop(100000),
-  vector_100000 = play_dice_vector(100000),
-  table_100000 = play_dice_table(100000),
-  apply_100000 = play_dice_apply(100000),
+  loop_1000 = play_dice_loop(1000, seed = 1000),
+  vector_1000 = play_dice_vector(1000, seed = 1000),
+  table_1000 = play_dice_table(1000, seed = 1000),
+  apply_1000 = play_dice_apply(1000, seed = 1000),
+  loop_100000 = play_dice_loop(100000, seed = 100000),
+  vector_100000 = play_dice_vector(100000, seed = 100000),
+  table_100000 = play_dice_table(100000, seed = 100000),
+  apply_100000 = play_dice_apply(100000, seed = 100000),
   times = 10
 )
 
 # Print and plot benchmark results
 print(benchmark_results)
 
-boxplot(benchmark_results, main = "Performance Comparison of Dice Game Implementations",
-        ylab = "Time (milliseconds)", las = 2)
-
 ```
-Vectorized Approach (vector_1000 and vector_100000): This version is typically the fastest because R is optimized for vectorized operations. It performs all calculations in a single step without needing to iterate over elements, making it highly efficient, especially for large inputs.
 
-Loop Approach (loop_1000 and loop_100000): This implementation is generally slower, especially for large inputs. The loop explicitly iterates over each dice roll, which adds overhead. The performance gap widens as the input size increases.
+```{r}
+# Wrapper functions to control seed before each call
+run_with_seed <- function(func, seed, ...) {
+  set.seed(seed)
+  func(...)
+}
 
-Table Approach (table_1000 and table_100000): The use of table() with factors helps avoid indexing issues, but this approach is still slower than the vectorized version because it involves extra steps to tabulate counts and handle NA values.
+# Run the microbenchmark comparison with controlled seed
+benchmark_results <- microbenchmark(
+  loop_1000 = run_with_seed(play_dice_loop, 123, 1000),
+  vector_1000 = run_with_seed(play_dice_vector, 123, 1000),
+  table_1000 = run_with_seed(play_dice_table, 123, 1000),
+  apply_1000 = run_with_seed(play_dice_apply, 123, 1000),
+  loop_100000 = run_with_seed(play_dice_loop, 123, 100000),
+  vector_100000 = run_with_seed(play_dice_vector, 123, 100000),
+  table_100000 = run_with_seed(play_dice_table, 123, 100000),
+  apply_100000 = run_with_seed(play_dice_apply, 123, 100000),
+  times = 10
+)
 
-Apply Function (apply_1000 and apply_100000): This version is slightly more efficient than the loop because it leverages sapply, which is optimized but still involves implicit looping. It performs better than the plain loop but is generally slower than direct vectorization.
-
-Input Size Impact:
-
-For 1,000 rolls, all implementations complete relatively quickly, though the differences are still noticeable. The vectorized approach is consistently faster, followed by apply, table, and loop.
-For 100,000 rolls, the differences become much more pronounced. The vectorized version significantly outperforms others, completing the task in much less time compared to the loop-based approaches, which slow down considerably as the number of iterations increases.
-Conclusion:
-
-Vectorization is the clear winner for performance in R, leveraging the language's strengths in handling large data efficiently.
-Loops and apply functions provide flexibility but come at a performance cost, particularly for larger inputs.
-The table approach, while handling edge cases well, introduces overhead due to frequency tabulation and indexing adjustments.
+# Print and plot benchmark results
+print(benchmark_results)
+```
 
 ## e. Do you think this is a fair game? Defend your decision with evidence based upon a Monte Carlo simulation.
 
-# Q
-*Just using play_dice_vector okay since all results are the same??*
+Below, we write a function for a Monte Carlo simulation, called `simulate_games()`, to estimate the expected value of the game by running a large number of games (100000 games). Using the function `play_dice_vector()`, which was our quickest implementation of the game simulation, we roll the dice 100 times for each game, and run 100000 games. For each game, we calculate the winnings and then compute the average winnings across all the simulations. We then print out the average winnings and write an if/else statement to see whether the average winnings was favorable. 
 
-Monte Carlo Simulation
-We'll use a Monte Carlo simulation to estimate the expected value of the game by running a large number of trials. This approach will help us determine whether the player wins or loses on average.
-
-Steps:
-Simulate a large number of games (e.g., 100,000).
-For each game, simulate the dice rolls and calculate the winnings.
-Compute the average winnings across all simulations.
-If the average winnings are negative, the game is unfair.
-
-# Q
-*WHAT NUMBER GOES INSIDE THE PLAY_DICE_VECTOR FUNCTION???????*
+Based on the Monte Carlo simulation, our average winnings are 66.80 dollars, which is greater than 0 dollars, which means that *this is not a fair game and the player will, on average, win money.*
 
 ```{r}
 # Monte Carlo simulation to evaluate game fairness
@@ -390,8 +385,11 @@ if (average_winnings < 0) {
 
 Download the cars data set available at https://corgis-edu.github.io/corgis/csv/cars/. The goal is to examine the relationship between torque and highway gas mileage.
 ```{r}
+# Load necessary libraries
 library(readr)
 library(tidyverse)
+
+# Read in dataset
 cars <- read_csv("cars.csv")
 ```
 
@@ -435,15 +433,17 @@ gasoline_cars <- cars2 %>%
 
 ### Examine the distribution of highway gas mileage. Consider whether a transformation could be used. If so, generate the transformed variable and use this variable going forward. If not, provide a short justification.
 
-Based on the histogram and boxplot below, we can see that the data is right-skewed, with one car that has an mpg of 223 skewing the data.
+Based on the histogram and boxplot below, we can see that the data is severely right-skewed. Usually, to deal with skewness, we can employ a log transformation for the outlier, which will make the distribution more normally distributed. However, upon further inspection of the values making the distribution skewed, we see that one car has an mpg of 223, which is 181 mpg more than the next highest mpg and also not possible in today's world. Given that 223 mpg is an impossible value for a car, we opt to get rid of this outlier rather than generating a transformed variable moving forward. We do this because a transformation of the variable would not fix the underlying problem that 223 mpg is impossible.
 
-*GETTING RID OF THE OUTLIER IS THE SOLUTION?*
+After we get rid of the outlier, we plot the histogram and examine the skewness again. This time, we see that the plot looks more normally distributed, and the highway mpg variable has a skewness of 0.46 (which is between the acceptable values of -1 and +1) and a kurtosis of -0.27 (which is between the generally acceptable values of between -2 and +2 for a normal distribution). Therefore, we stick to our decision of just deleting the outlier and not making any transformations.
+
 ```{r}
-# Examine distribution
+# Examine distribution using histogram and boxplot
+
 ggplot(gasoline_cars, aes(x = highway_mpg)) +
   geom_histogram(bins = 30, color = "black", fill = "skyblue") +
   labs(
-    title = "Distribution of Highway Gas Mileage",
+    title = "Distribution of Highway Gas Mileage with Outliers",
     x = "Highway MPG",
     y = "Frequency"
   ) +
@@ -452,7 +452,7 @@ ggplot(gasoline_cars, aes(x = highway_mpg)) +
 ggplot(gasoline_cars, aes(y = highway_mpg)) +
   geom_boxplot(fill = "skyblue", color = "black") +
   labs(
-    title = "Box Plot of Highway Gas Mileage",
+    title = "Box Plot of Highway Gas Mileage with Outliers",
     y = "Highway MPG"
   ) +
   theme_minimal()
@@ -464,32 +464,32 @@ summary(gasoline_cars$highway_mpg) # 223
 library(psych)
 psych::describe(gasoline_cars$highway_mpg)
 
-
 # If we get rid of the outlier, it's better.
 gasoline_cars2 <- gasoline_cars %>% filter(highway_mpg <100)
-ggplot(g, aes(x = highway_mpg)) +
+
+# Replot histogram to see if things get more normal
+ggplot(gasoline_cars2, aes(x = highway_mpg)) +
   geom_histogram(bins = 30, color = "black", fill = "skyblue") +
   labs(
-    title = "Distribution of Highway Gas Mileage",
+    title = "Distribution of Highway Gas Mileage AFTER Deleting Outlier",
     x = "Highway MPG",
     y = "Frequency"
   ) +
   theme_minimal()
 
+# See the descriptives again to check skewness/kurtosis numbers
 psych::describe(gasoline_cars2$highway_mpg) # if get rid of outlier, skewness is now <1, at 0.46
 ```
-The skewness() function (from the e1071 package) calculates the skewness. A skewness value > |1| suggests significant skewness.
-Transformation:
-If skewness is high, apply a log transformation and visualize the transformed data.
-If skewness is low or data is approximately normal, no transformation is needed.
 
 ### d. Fit a linear regression model predicting MPG on the highway. The predictor of interest is torque. Control for:
 
-The horsepower of the engine
-All three dimensions of the car
-The year the car was released, as a categorical variable.
+* The horsepower of the engine
+* All three dimensions of the car
+* The year the car was released, as a categorical variable.
 
-Briefly discuss the estimated relationship between torque and highway MPG. Be precise about the interpretation of the estimated coefficient.
+### Briefly discuss the estimated relationship between torque and highway MPG. Be precise about the interpretation of the estimated coefficient.
+
+Based on the regression results below, we see that a one-unit (I think the unit would be in Newton-meters, based on a Google search, but I'm not an expert in cars) increase in torque is associated with a *0.052 decrease* in highway MPG, on average. This association is statistically significant at the p<0.05 level, even after controlling for horsepower, dimensions of the car, and the year the car was released. The negative relationship between torque and highway MPG makes sense since higher torque often means a more powerful engine, which can consume more fuel.
 
 ```{r}
 library(lmtest)
@@ -508,17 +508,30 @@ summary(reg1)
 
 ### e. It seems reasonable that there may be an interaction between torque and horsepower. Refit the model (with lm) and generate an interaction plot, showing how the relationship between torque and MPG changes as horsepower changes. Choose reasonable values of torque, and show lines for three different reasonable values of horsepower.
 
+First, we refit the model with the interaction. In the regression output, we see that the effect of torque on highway MPG varies statistically significantly depending on the level of horsepower. At low levels of horsepower, the negative association of torque with highway MPG is stronger; as horsepower increases, the negative association of torque with highway MPG decreases (the interaction term is positive). This means there is a statistically significant moderation between the two terms.
+
 ```{r}
 library(emmeans)
+
 # Refit model with interaction
 interaction_model <- lm(highway_mpg ~ torque * horsepower + height + length_dim + width + year, 
                         data = gasoline_cars2)
 
 summary(interaction_model)
+```
 
+Then, we generate the interaction plot. We see that torque ranges from 98 to 774, so we choose values of torque between 90 and 790, going up by 20. For our three values of horsepower, we choose the 25th, 50th, and 75th percentiles of horsepower to give as a good range for low, median, and high levels of horsepower. This graph visually shows us the moderation of horsepower on torque that we saw in the regression output above. 
+
+For cars with low horsepower, increasing torque is more likely to reduce highway MPG. For cars with higher horsepower, increasing torque still reduces highway MPG, but the rate is less negative. This suggests that cars with stronger horsepower are better able to handle higher torque without compromising fuel efficiency as much.
+
+```{r}
 # Use `emmeans` to calculate estimated marginal means for the interaction between torque and horsepower
+library(emmeans)
+
 # Choose reasonable values for torque and specify three values of horsepower for the plot
-torque_values <- seq(90, 770, by = 20) 
+torque_values <- seq(90, 790, by = 20) 
+
+# Horsepower values based on quantiles.
 horsepower_values <- quantile(gasoline_cars2$horsepower, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
 
 # Generate the estimated marginal means
@@ -528,13 +541,56 @@ em_interaction <- emmeans(interaction_model, ~ torque * horsepower,
 # Plot the interaction effect using `emmip()`
 emmip(em_interaction, horsepower ~ torque, 
       at = list(torque = torque_values, horsepower = horsepower_values),
-      xlab = "Torque (lb-ft)", ylab = "Estimated Highway MPG", 
-      main = "Interaction Plot: Torque and Horsepower on Highway MPG",
+      xlab = "Torque (lb-ft)", 
+      ylab = "Estimated Highway MPG", 
+      lines = TRUE)
+```
+
+We also do not want the interaction confounded with the year, since we know that technological advances may improve mpg for cars in more recent years. In the regressions and plots below, we compare 2009 cars with 2012 cars. We still see a statistically significant interaction for each year separately, although we see that the moderation is more apparent in more recent years (2012) compared to 2009, although we should be careful interpretting the 2009 output because the sample size is only 48 cars.
+
+```{r}
+gc_2009 <- gasoline_cars2 %>% filter(year == 2009)
+gc_2012 <- gasoline_cars2 %>% filter(year == 2012)
+
+# Refit model with interaction for 2009
+interaction_model_2009 <- lm(highway_mpg ~ torque * horsepower + height + length_dim + width, 
+                        data = gc_2009)
+
+summary(interaction_model)
+
+# Refit model with interaction for 2012
+interaction_model_2012 <- lm(highway_mpg ~ torque * horsepower + height + length_dim + width, 
+                        data = gc_2012)
+
+summary(interaction_model)
+
+# Generate the estimated marginal means for 2009 and 2012
+em_interaction_2009 <- emmeans(interaction_model_2009, ~ torque * horsepower, 
+                          at = list(torque = torque_values, horsepower = horsepower_values))
+
+em_interaction_2012 <- emmeans(interaction_model_2012, ~ torque * horsepower, 
+                          at = list(torque = torque_values, horsepower = horsepower_values))
+
+
+# Plot the interaction effect using `emmip()` for 2009
+emmip(em_interaction_2009, horsepower ~ torque, 
+      at = list(torque = torque_values, horsepower = horsepower_values),
+      xlab = "Torque (lb-ft)", 
+      ylab = "Estimated Highway MPG", 
+      lines = TRUE)
+
+# Plot the interaction effect using `emmip()` for 2012
+emmip(em_interaction_2012, horsepower ~ torque, 
+      at = list(torque = torque_values, horsepower = horsepower_values),
+      xlab = "Torque (lb-ft)", 
+      ylab = "Estimated Highway MPG", 
       lines = TRUE)
 ```
 
 
 ### f. Calculate from d. manually (without using lm) by first creating a proper design matrix, then using matrix algebra to estimate. Confirm that you get the same result as lm did prior.
+
+We get the -0.0517480111 coefficient for torque, along with all the same other coefficients, using both `lm()` and matrix algebra.
 
 ```{r}
 # Get the design matrix
