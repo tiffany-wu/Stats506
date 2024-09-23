@@ -611,3 +611,194 @@ foo()
 traceback() # Shows callstack
 ```
 
+# 9.19.24 Notes
+
+## Quiz 2
+```{r}
+a <- c(1, 10, 100)
+b <- matrix(1:12, ncol = 3)
+a
+b
+a+b
+a + t(b)
+c <- t(a + t(b)) # or t(t(b) + a)
+c
+
+# Review
+# Vector operations
+c(1,2) + c(2,3,4) # By default, element by element operations, will RECYCLE
+# Length will be length of LONGER object = length 3
+
+c(1,2) + mean(c(1,2,3)) # length = 2 because mean spits out 1 number, vector of length 1
+
+# Matrices
+matrix(1:6, nrow= 2)
+c(1,2) * matrix(1:6, nrow= 2) # vectors are DIRECTIONLESS
+# Go multiply down columns, same way matrix is defined
+
+# 1x2 times 2x3 = 1x3 matrix
+matrix(c(1,2), nrow = 1) %*% matrix(1:6, nrow = 2)
+
+# Can do this to check dimentions
+if(all(dim(result != c(2,3)))){
+  stop()
+}
+```
+
+## Debugging what part is slow: Profiling
+```{r}
+library(profvis)
+
+# This runs profiling and produces measurements.Takes snapshots. But only good for longer-running code.
+# The command is jsut (profvis)
+```
+
+## Regressions
+~ is a FORMULA
+```{r}
+3 ~ 2
+
+ff <- 3~2
+typeof(ff) # language object. Basically like a sentence, with left and right side of equation
+
+b~4 # like b = 4 math statement, but won't save to global environment. Just specifies the equation.
+```
+
+```{r}
+data(mtcars)
+
+form <- qsec ~ disp + cyl # This is just a formula
+# qsec = beta_0 + beta_1*disp + beta_2*cyl + epsilon
+# RHS: disp + cyl
+# LHS: qsec
+
+# linear regression
+lm(form, data = mtcars)
+lm(qsec~disp + cyl, data = mtcars)
+
+# What if you don't want intercept? Probably won't ever use this
+lm(qsec~disp + cyl + 0, data = mtcars)
+lm(qsec~disp + cyl -1, data = mtcars)
+
+# Interactions
+lm(qsec~disp*cyl, data = mtcars)
+lm(qsec~disp:cyl, data = mtcars) # This assumes the main effects = 0
+lm(qsec~disp + cyl + disp:cyl, data = mtcars) # Same as just the disp*cyl regression, if you want to build in manually
+
+# Include EVERYTHING in dataset
+lm(qsec~., data = mtcars)
+
+# Include everything EXCEPT am
+lm(qsec~.-am, data = mtcars)
+
+# Everything in R is an Object, save lm object
+mod <- lm(qsec~ . - am, data = mtcars)
+
+summary(mod) # Get all the useful info, slower than just running lm so it's not automatic
+
+# Save summary as an object
+smod <- summary(mod)
+is(mod) # "lm"       "oldClass"
+is(smod) # summary.lm
+
+# These can just be lists
+class(mod) <- "list"
+
+# Entire code
+stats:::print.lm(mod)
+
+# Can pull things out
+mod$coefficients # Just betas
+smod$coefficients # betas, SEs, t-val, p-value
+
+coefficients(mod) # If you have other things in your mod and just want to make sure you pull out the coefficients
+
+# Don't want to write special code for lm vs glm vs IRT vs mixed models, etc. "Predict" will work with almost every single model, not just lm. mod$fitted.values might not work with glm/IRT/mixed/etc.
+head(predict(mod)) # y-predictions, same as fitted values. 
+head(mod$fitted.values) # y-predictions
+
+smod$r.squared # single-length vector of the R-squared value
+
+
+```
+
+## Polynomials
+```{r}
+lm(mpg ~ wt*wt, data = mtcars) # This won't work for quadratic. R will automatically avoid duplication issue
+
+# Method 1 for poly: Manual creation -- NOT GOOD
+mtcars$wtsq <- mtcars$wt^2
+
+lm(mpg ~ wt + wtsq, data = mtcars)
+# Don't do this because R wont' know wt and wtsq are related
+
+# Method 2 for poly: I function
+## I tells R to do math, then put it into formula
+lm(mpg ~ I(wt*wt), data = mtcars) # But doesn't keep wt , just does wt squared
+
+# Method 3: poly
+lm(mpg ~ poly(wt, degree = 2), data = mtcars)
+# Poly STANDARDIZES for you automatically. Some people think that you have to always convert to Z-score if you're doing polynomials. THIS IS NOT TRUE. 
+
+# Method 4: poly with raw = TRUE
+lm(mpg ~ poly(wt, degree = 2, raw = TRUE), data = mtcars)
+
+mod2 <- lm(mpg ~ poly(wt, degree = 2, raw = TRUE) + qsec, data = mtcars)
+summary(mod2)
+# Only linear reg has a closed form solution. Most other models DO NOT have closed form solution, need to optimize. This is when it makes sense to standardize. Theoretically, you don't need to. But it might make convergence hard for the computers.
+```
+
+## Get the X matrix out for (XtX)^-1Xty
+
+```{r}
+# Can do it manually
+
+X <- data.frame(intercept = rep(1, nrow(mtcars)),
+                disp = mtcars$disp,
+                cyl = mtcars$cyl)
+
+# model.matrix = will give design matrix automatically
+model.matrix(mod, data = mtcars) # Recommend this one
+model.matrix(form, data = mtcars) # Can also pass in a formula instead of mod, but it won't work if you're subsetting your data you'll need to make another dataframe
+```
+
+## Categorical variables
+```{r}
+# Factors
+vec <- c(10,20,20)
+fvec <- as.factor(vec)
+fvec
+as.numeric(fvec) # 1 2 2, values as numbers, assigning labels to the numbers
+
+mtcars$cylf <- as.factor(mtcars$cyl)
+
+lm(mpg ~ cylf, data = mtcars)
+# Intecept = average mpg for reference categories (cyl4)
+# cylf6 = 8 cylinder cars have about ~15 mpg
+
+model.matrix(~cylf, data = mtcars) # dont' care about y for design matrix so can run it without y
+```
+
+## model.frame
+```{r}
+model.matrix(mod, data = mtcars)
+
+head(model.frame(mod, data= mtcars)) # does the same thing as model.matrix, but output is a data frame
+# DROPS unnecessary variables, creates minimal version. So if you do the interaction, it won't include the interaction, just the variables needed for the interaction
+```
+
+## Post-estimation
+Like if you want to calculate robust standard errors or marginal effects (linear combinations of predictors, what happens when we combine them together?). E.g. test whether inclusion of 1 var is diff from another (Is cylf6 different from cylf8? Or is it jsut idfferent from reference?)
+
+```{r}
+mod3 <- lm(mpg ~ cylf, data = mtcars)
+```
+
+
+
+
+
+
+
+
+
