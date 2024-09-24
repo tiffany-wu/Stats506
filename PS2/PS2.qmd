@@ -45,11 +45,9 @@ All the following functions take in 2 arguments: the number of rolls to simulate
 #'
 #' @return Numeric. The total winnings (or losses) after `n` rolls.
 #' 
-#'
 #' @examples
 #' play_dice_loop(10, seed = 123) # Example with 10 rolls with seed of 123
 #'
-#' 
 play_dice_loop <- function(n, seed = NULL) {
   
   # Input sanitization -- make sure n is a positive integer
@@ -291,8 +289,6 @@ play_dice_apply(3000, seed = 285)
 
 Based on the results of the microbenchmark package, we see that the vectorized function (Version 2) works best with both a high and low input and has the quickest speed. This makes sense because R is optimized for vectorized operations, and vectors eliminate the overhead of having to loop through things multiple times. The table function is second quickest and creates the tables by counting the frequency of each value in a vector, using vectorized functions like "sum". While this involves sum overhead, such as having to convert data in factors, this is still relatively fast because R is optimized for counting operations. The apply and loop functions are the slowest because they have to loop over rows/columns or over each element in a vector, incurring a greater speed cost for each iteration. In general, in R, operations based on vector operations seem to be faster than those that have row-by-row, column-by-column, or element-by-element operations.
 
-*GET DIFFERENTE RESULTS EACH TIME?*
-
 ```{r}
 library(microbenchmark)
 
@@ -317,30 +313,6 @@ print(benchmark_results)
 
 ```
 
-```{r}
-# Wrapper functions to control seed before each call
-run_with_seed <- function(func, seed, ...) {
-  set.seed(seed)
-  func(...)
-}
-
-# Run the microbenchmark comparison with controlled seed
-benchmark_results <- microbenchmark(
-  loop_1000 = run_with_seed(play_dice_loop, 123, 1000),
-  vector_1000 = run_with_seed(play_dice_vector, 123, 1000),
-  table_1000 = run_with_seed(play_dice_table, 123, 1000),
-  apply_1000 = run_with_seed(play_dice_apply, 123, 1000),
-  loop_100000 = run_with_seed(play_dice_loop, 123, 100000),
-  vector_100000 = run_with_seed(play_dice_vector, 123, 100000),
-  table_100000 = run_with_seed(play_dice_table, 123, 100000),
-  apply_100000 = run_with_seed(play_dice_apply, 123, 100000),
-  times = 10
-)
-
-# Print and plot benchmark results
-print(benchmark_results)
-```
-
 ## e. Do you think this is a fair game? Defend your decision with evidence based upon a Monte Carlo simulation.
 
 Below, we write a function for a Monte Carlo simulation, called `simulate_games()`, to estimate the expected value of the game by running a large number of games (100000 games). Using the function `play_dice_vector()`, which was our quickest implementation of the game simulation, we roll the dice 100 times for each game, and run 100000 games. For each game, we calculate the winnings and then compute the average winnings across all the simulations. We then print out the average winnings and write an if/else statement to see whether the average winnings was favorable. 
@@ -348,22 +320,30 @@ Below, we write a function for a Monte Carlo simulation, called `simulate_games(
 Based on the Monte Carlo simulation, our average winnings are 66.80 dollars, which is greater than 0 dollars, which means that *this is not a fair game and the player will, on average, win money.*
 
 ```{r}
-# Monte Carlo simulation to evaluate game fairness
+#' Monte Carlo simulation to evaluate game fairness
+#'
+#' This function runs a dice game simulation a specified number of times
+#' and returns the average winnings across all simulations.
+#'
+#' @param n_sim Integer. The number of simulations to run. For example, use 100,000 simulations for more robust results.
+#'
+#' @return Numeric. The average winnings across all simulations.
+#' 
+#' @examples
+#' simulate_game(100000)
+#' 
 simulate_game <- function(n_sim) {
- # set.seed(285)
   
-  # Pick a random number (integer) of times to roll the dice in each game
- # runs <- sample(100, 1) # FIX THIS AT SOMETHING, RUN WITH DIFFERENT RESULTS. DON'T SET SEED FOR THIS TIME.
+  # Replicate the game n_sim times
+  winnings <- replicate(n_sim, play_dice_vector(100)) # Using vectorized version for speed, FIX the number of runs but don't set seed so we get different results each time
   
-  # Replicate the game n_sim (100000) times
-  winnings <- replicate(n_sim, play_dice_vector(100)) # Using vectorized version for speed
-  
+  # Get the average winnings from each simulation
   mean_winnings <- mean(winnings)
   
   return(mean_winnings)
 }
 
-# Simulate 100,000 games
+# Simulate 100,000 games, setting seed for reproducibility
 set.seed(285)
 average_winnings <- simulate_game(100000)
 print(average_winnings)
@@ -382,7 +362,7 @@ if (average_winnings < 0) {
 ## Problem 2 - Linear Regression
 
 Download the cars data set available at https://corgis-edu.github.io/corgis/csv/cars/. The goal is to examine the relationship between torque and highway gas mileage.
-```{r}
+```{r, warning = FALSE}
 # Load necessary libraries
 library(readr)
 library(tidyverse)
