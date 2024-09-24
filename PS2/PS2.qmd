@@ -75,21 +75,19 @@ play_dice_loop <- function(n, seed = NULL) {
     
     # Roll a 6-sided die-- use sample instead of runif for whole values 
     roll <- sample(1:6, 1, replace = TRUE)
-#   print(roll)
     
     # If you get 3 or 5, you win twice your roll (minus the 2 it cost to play)
     if (roll == 3 || roll == 5) {
       winnings <- winnings + 2 * roll - 2
-#      print(winnings)
     } else {
       # Else you lose the 2 dollars it cost to play
       winnings <- winnings - 2
- #     print(winnings)
     }
   }
   return(winnings)
 }
 
+# Checking if it worked
 play_dice_loop(3, seed = 5)
 play_dice_loop(30000)
 
@@ -110,7 +108,6 @@ play_dice_loop(30000)
 #' 
 #' @examples
 #' play_dice_vector(10) # Example with 10 rolls
-#'
 #' 
 play_dice_vector <- function(n, seed = NULL) {
   
@@ -138,7 +135,7 @@ play_dice_vector <- function(n, seed = NULL) {
   return(winnings)
 }
 
-
+# Check if it works
 play_dice_vector(3, seed = 89034892)
 ```
 
@@ -241,6 +238,7 @@ play_dice_apply <- function(n, seed = NULL) {
   return(winnings)
 }
 
+# Check if it works
 play_dice_apply(3)
 ```
 
@@ -599,7 +597,7 @@ head(model.matrix(highway_mpg ~ torque + horsepower + height + length_dim + widt
 
 cars_mat <- model.matrix(highway_mpg ~ torque + horsepower + height + length_dim + width + year, data = gasoline_cars2)
 
-# Remove the 'torque' column since that's the y vector
+# Rename the model matrix to be X for the matrix algebra
 X_mat <- cars_mat
 
 # y matrix
@@ -620,11 +618,12 @@ print(beta_hat)
 coefficients(reg1)
 lm_coefs <- coefficients(reg1)
 
-# Equal?
+# Are the results from lm and the matrix algebra equal?
 # Remove names from both vectors to avoid comparison issues with names
 beta_hat_no_names <- as.vector(beta_hat)
 lm_coefs_no_names <- as.vector(lm_coefs)
 
+# Confirm taht we get the same results:
 all.equal(beta_hat_no_names, lm_coefs_no_names)
 ```
 
