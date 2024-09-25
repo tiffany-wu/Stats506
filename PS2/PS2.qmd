@@ -10,7 +10,7 @@ editor: source
 mainfont: Times New Roman
 ---
  
-## Github Repo Link to Problem Set 1:
+## Github Repo Link to Problem Set 2:
 [https://github.com/tiffany-wu/Stats506/tree/main/PS2](https://github.com/tiffany-wu/Stats506/tree/main/PS2) 
 
 ## Problem 1 - Dice Game
@@ -190,6 +190,7 @@ play_dice_table <- function(n, seed = NULL) {
   return(winnings)
 }
 
+# Check that it works
 play_dice_table(3)
 ```
 
@@ -308,7 +309,7 @@ benchmark_results <- microbenchmark(
   times = 10
 )
 
-# Print and plot benchmark results
+# Print benchmark results
 print(benchmark_results)
 
 ```
@@ -409,7 +410,7 @@ gasoline_cars <- cars2 %>%
   filter(fuel_type == "Gasoline")
 ```
 
-### Examine the distribution of highway gas mileage. Consider whether a transformation could be used. If so, generate the transformed variable and use this variable going forward. If not, provide a short justification.
+### c. Examine the distribution of highway gas mileage. Consider whether a transformation could be used. If so, generate the transformed variable and use this variable going forward. If not, provide a short justification.
 
 Based on the histogram and boxplot below, we can see that the data is severely right-skewed. Usually, to deal with skewness, we can employ a log transformation for the outlier, which will make the distribution more normally distributed. However, upon further inspection of the values making the distribution skewed, we see that one car has an mpg of 223, which is 181 mpg more than the next highest mpg and also not possible in today's world. Given that 223 mpg is an impossible value for a car, we opt to get rid of this outlier rather than generating a transformed variable moving forward. We do this because a transformation of the variable would not fix the underlying problem that 223 mpg is impossible.
 

@@ -3099,8 +3099,8 @@ vertical-align: -.125em;
 </header>
 
 
-<section id="github-repo-link-to-problem-set-1" class="level2">
-<h2 class="anchored" data-anchor-id="github-repo-link-to-problem-set-1">Github Repo Link to Problem Set 1:</h2>
+<section id="github-repo-link-to-problem-set-2" class="level2">
+<h2 class="anchored" data-anchor-id="github-repo-link-to-problem-set-2">Github Repo Link to Problem Set 2:</h2>
 <p><a href="https://github.com/tiffany-wu/Stats506/tree/main/PS2">https://github.com/tiffany-wu/Stats506/tree/main/PS2</a></p>
 </section>
 <section id="problem-1---dice-game" class="level2">
@@ -3137,50 +3137,48 @@ vertical-align: -.125em;
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @return Numeric. The total winnings (or losses) after `n` rolls.</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; </span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; play_dice_loop(10, seed = 123) # Example with 10 rolls with seed of 123</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; </span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>play_dice_loop <span class="ot">&lt;-</span> <span class="cf">function</span>(n, <span class="at">seed =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Input sanitization -- make sure n is a positive integer</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Double bars is logical OR operator, returns TRUE if at least one condition is TRUE</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(n) <span class="sc">||</span> n <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">||</span> n <span class="sc">!=</span> <span class="fu">as.integer</span>(n)) {</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Error: &#39;n&#39; must be a positive integer.&quot;</span>)</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Input sanitization -- make sure if seed is provided it&#39;s numeric</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(seed) <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">is.numeric</span>(seed)) {</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Error: &#39;seed&#39; must be numeric.&quot;</span>)</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Set seed if provided</span></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(seed)) {</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set.seed</span>(seed)</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Initiate winnings with 0 dollars</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  winnings <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Roll a 6-sided die-- use sample instead of runif for whole values </span></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    roll <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If you get 3 or 5, you win twice your roll (minus the 2 it cost to play)</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (roll <span class="sc">==</span> <span class="dv">3</span> <span class="sc">||</span> roll <span class="sc">==</span> <span class="dv">5</span>) {</span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>      winnings <span class="ot">&lt;-</span> winnings <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> roll <span class="sc">-</span> <span class="dv">2</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Else you lose the 2 dollars it cost to play</span></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>      winnings <span class="ot">&lt;-</span> winnings <span class="sc">-</span> <span class="dv">2</span></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(winnings)</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="co"># Checking if it worked</span></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_loop</span>(<span class="dv">3</span>, <span class="at">seed =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; play_dice_loop(10, seed = 123) # Example with 10 rolls with seed of 123</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>play_dice_loop <span class="ot">&lt;-</span> <span class="cf">function</span>(n, <span class="at">seed =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Input sanitization -- make sure n is a positive integer</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Double bars is logical OR operator, returns TRUE if at least one condition is TRUE</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(n) <span class="sc">||</span> n <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">||</span> n <span class="sc">!=</span> <span class="fu">as.integer</span>(n)) {</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Error: &#39;n&#39; must be a positive integer.&quot;</span>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Input sanitization -- make sure if seed is provided it&#39;s numeric</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(seed) <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">is.numeric</span>(seed)) {</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Error: &#39;seed&#39; must be numeric.&quot;</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Set seed if provided</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(seed)) {</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set.seed</span>(seed)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Initiate winnings with 0 dollars</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  winnings <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Roll a 6-sided die-- use sample instead of runif for whole values </span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    roll <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If you get 3 or 5, you win twice your roll (minus the 2 it cost to play)</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (roll <span class="sc">==</span> <span class="dv">3</span> <span class="sc">||</span> roll <span class="sc">==</span> <span class="dv">5</span>) {</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>      winnings <span class="ot">&lt;-</span> winnings <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> roll <span class="sc">-</span> <span class="dv">2</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Else you lose the 2 dollars it cost to play</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>      winnings <span class="ot">&lt;-</span> winnings <span class="sc">-</span> <span class="dv">2</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(winnings)</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Checking if it worked</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_loop</span>(<span class="dv">3</span>, <span class="at">seed =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
@@ -3303,7 +3301,8 @@ vertical-align: -.125em;
 <span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(winnings)</span>
 <span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_table</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="co"># Check that it works</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="fu">play_dice_table</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -6</code></pre>
@@ -3520,20 +3519,20 @@ vertical-align: -.125em;
 <span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> <span class="dv">10</span></span>
 <span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Print and plot benchmark results</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Print benchmark results</span></span>
 <span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(benchmark_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Unit: microseconds
           expr      min       lq       mean     median        uq       max
-     loop_1000   5703.5   6353.1    7895.67    6759.15    8436.5   14368.7
-   vector_1000    188.2    263.6     304.71     287.70     362.5     387.1
-    table_1000    424.6    633.8     679.82     734.05     780.9     796.0
-    apply_1000   7115.2   7392.7    9949.23    7838.75   10029.5   18604.8
-   loop_100000 667199.5 748233.7  775924.91  758752.50  825526.1  920354.0
- vector_100000  15787.4  17281.9   18764.75   17827.50   20326.6   25554.2
-  table_100000  17205.4  18991.3   22127.25   20614.70   21130.9   32125.6
-  apply_100000 851552.6 949629.3 1084394.18 1091301.10 1153261.2 1473537.0
+     loop_1000   5934.7   6343.0    8650.29    7596.70   10634.5   14111.5
+   vector_1000    220.8    257.2     316.91     306.65     329.9     515.3
+    table_1000    423.3    641.5     764.18     758.75     829.0    1278.1
+    apply_1000   7838.4   8108.6   12477.26   10583.50   15636.6   22172.9
+   loop_100000 676943.5 744961.6  792526.92  758063.70  852728.6  912773.0
+ vector_100000  15822.0  18182.0   21878.66   21412.45   25023.8   29547.6
+  table_100000  15667.7  17433.8   20903.58   20514.65   23093.3   27210.6
+  apply_100000 915692.7 958455.4 1161601.51 1212695.90 1247450.1 1524463.2
  neval cld
     10 a  
     10 a  
@@ -3704,8 +3703,8 @@ lgl (1): Engine Information.Hybrid
 </details>
 </div>
 </section>
-<section id="examine-the-distribution-of-highway-gas-mileage.-consider-whether-a-transformation-could-be-used.-if-so-generate-the-transformed-variable-and-use-this-variable-going-forward.-if-not-provide-a-short-justification." class="level3">
-<h3 class="anchored" data-anchor-id="examine-the-distribution-of-highway-gas-mileage.-consider-whether-a-transformation-could-be-used.-if-so-generate-the-transformed-variable-and-use-this-variable-going-forward.-if-not-provide-a-short-justification.">Examine the distribution of highway gas mileage. Consider whether a transformation could be used. If so, generate the transformed variable and use this variable going forward. If not, provide a short justification.</h3>
+<section id="c.-examine-the-distribution-of-highway-gas-mileage.-consider-whether-a-transformation-could-be-used.-if-so-generate-the-transformed-variable-and-use-this-variable-going-forward.-if-not-provide-a-short-justification." class="level3">
+<h3 class="anchored" data-anchor-id="c.-examine-the-distribution-of-highway-gas-mileage.-consider-whether-a-transformation-could-be-used.-if-so-generate-the-transformed-variable-and-use-this-variable-going-forward.-if-not-provide-a-short-justification.">c. Examine the distribution of highway gas mileage. Consider whether a transformation could be used. If so, generate the transformed variable and use this variable going forward. If not, provide a short justification.</h3>
 <p>Based on the histogram and boxplot below, we can see that the data is severely right-skewed. Usually, to deal with skewness, we can employ a log transformation for the outlier, which will make the distribution more normally distributed. However, upon further inspection of the values making the distribution skewed, we see that one car has an mpg of 223, which is 181 mpg more than the next highest mpg and also not possible in today’s world. Given that 223 mpg is an impossible value for a car, we opt to get rid of this outlier rather than generating a transformed variable moving forward. We do this because a transformation of the variable would not fix the underlying problem that 223 mpg is impossible.</p>
 <p>After we get rid of the outlier, we plot the histogram and examine the skewness again. This time, we see that the plot looks more normally distributed, and the highway mpg variable has a skewness of 0.46 (which is between the acceptable values of -1 and +1) and a kurtosis of -0.27 (which is between the generally acceptable values of between -2 and +2 for a normal distribution). Therefore, we stick to our decision of just deleting the outlier and not making any transformations.</p>
 <div class="cell">
