@@ -787,17 +787,148 @@ head(model.frame(mod, data= mtcars)) # does the same thing as model.matrix, but 
 # DROPS unnecessary variables, creates minimal version. So if you do the interaction, it won't include the interaction, just the variables needed for the interaction
 ```
 
+
+# 9.24.24 Notes
+
 ## Post-estimation
 Like if you want to calculate robust standard errors or marginal effects (linear combinations of predictors, what happens when we combine them together?). E.g. test whether inclusion of 1 var is diff from another (Is cylf6 different from cylf8? Or is it jsut idfferent from reference?)
 
+Average for gear4 is about 30 mpg. 27.88 for gear3. About 34 for gear5.
+
 ```{r}
-mod3 <- lm(mpg ~ cylf, data = mtcars)
+# Last class's example
+data(mtcars)
+table(mtcars$gear)
+mtcars$gear <- as.factor(mtcars$gear) # Make gear categorical
+
+mod3 <- lm(mpg ~ gear + hp, data = mtcars)
+summary(mod3)
+
+# general linear hypothesis testing
+library(multcomp)
+
+glht(mod3, "Intercept + gear4 = 0")
+
+# Tests if the sum is equal to 0. No car will have 0 mpg, so not realistic.
+# Summary will get you the standard errors.
+summary(glht(mod3, "Intercept + gear4 = 0"))
+
+# Which pairs of gears are stat. sig. from each other? Are there any different from each other? e.g., are gear4 and gear5 different from each other? Since categorical variable reference category is gear3.
+
+summary(glht(mod3, "Intercept + gear4 = Intercept + gear5")) # This won't run so have to rearrange
+
+# Intercepts cancel out
+summary(glht(mod3, "gear4 - gear5 = 0")) # need constant on RHS for software to run. Marginally sig.
+```
+
+```{r}
+# New example for today
+hw <- read.csv("husbands_wives.csv")
+
+# Reg
+mod4 <- lm(years_married ~ ht_husband + ht_wife, data = hw)
+summary(mod4)
+
+# Sig. b/w husband and years married but not for wife. People who are taller tend to have more health issues? Health confounded with height
+
+# No difference between the effect of husband's height vs. wife's height on years married. Story of contradiction.
+summary(glht(mod4, ("ht_husband - ht_wife = 0")))
+
+# The test checks if there is a statistically significant difference between the effect of the husband's height and the wife's height on the number of years married. The hypothesis being tested is whether the coefficient for ht_husband is equal to the coefficient for ht_wife. The output will tell whether the heights of husbands and wives have different effects on the duration of marriage.
+
+#The comment hints at a contradiction, possibly referring to an expectation that both variables should have similar effects, or perhaps previous findings suggested such. However, if the test result shows that the null hypothesis (ht_husband - ht_wife = 0) cannot be rejected, it suggests that there is no statistical difference in how the heights of husbands and wives affect the duration of marriage.
+```
+
+## Marginal effects
+Marginalizing is integrating out something.
+
+In reg, we can marginalize away a variable. BUT WE DON'T USE THIS.
+
+Commonly, it just does glht linear combinations simultaneously without having to type out the command every time.
+```{r}
+library(emmeans)
+
+# This function call calculates the estimated marginal means (EMMs) for the factor gear within the context of a linear model stored in mod. The gear variable is treated here as a factor or categorical predictor within the model.
+# ~ gear: This formula specifies that EMMs should be calculated for each level of the gear factor. If gear represents something like the number of gears in a vehicle, emmeans will compute the mean response (dependent variable in mod) for each number of gears, adjusted for other factors included in the model.
+emmeans(mod3, ~ gear)
+# For every other variable (hp), emmeans puts in the average so it's more realistic. E.g., no car has 0 horsepower. That's why the gear averages are diff than the one in the mod3 output.
+
+# Differences between gears? Below output should match glht output because hp drops out
+test(emmeans(mod3, ~gear)) #ttests
+pairs(emmeans(mod3, ~gear)) #pairwise differences
+# Multiple comparisons-- emmeans adjusts for this using Tukey method
+
+# Josh thinks we don't need it because we're just trying to get a diff reference category from the SAME model. Just 1 model written different ways.
+pairs(emmeans(mod3, ~gear, adjust = "none")) #pairwise differences, adjust = "none" gets rid of the multiple comparison adjustment
+```
+
+## Other libraries for marginal effects that are more modern than emmeans
+```{r}
+library(marginaleffects) # Josh thinks this is confusing though
+library(ggeffects) # For ggplot world. Doesn't have as many capabilities, but way better for vizes
 ```
 
 
+## Interactions
+```{r}
+mod5 <- lm(mpg ~ gear*hp, data = mtcars)
+
+summary(mod5)
+
+# If we want to estimate all 3 slopes
+summary(glht(mod5, "hp = 0")) # negative slope for gear3
+summary(glht(mod5, "hp+gear4:hp = 0")) # Stronger negative slope for gear 4
+summary(glht(mod5, "hp+gear5:hp = 0")) # negative slope for gear 5 at around same slope as gear3
+
+summary(glht(mod5, "gear4:hp = 0")) # Significant different between slopes for gear3 and gear4
+summary(glht(mod5, "gear4:hp - gear5:hp = 0"))
+```
+
+## Interaction plots
+```{r}
+emmip(mod5, gear ~ hp, 
+      at = list(hp = c(100, 150, 200, 250)))
+
+# Low horsepowers associated with equal-ish mpg. But has hp increases, gear4's slope drops quickest. 
+
+# But small sample size
+
+# Another package for interactions
+library(interactions)
+interactions::interact_plot(mod5, pred = "hp", modx = "gear")
+```
+
+## GLM
+Linear models with a link function. E.g., binary outcome where you use logit.
+```{r}
+glm(am ~ gear*hp, 
+    data = mtcars, 
+    family = binomial)
+
+mod6 <- glm(am ~ gear*hp, 
+    data = mtcars, 
+    family = binomial)
+
+summary(mod6)
+
+# Can use predict and emmeans on this output too
+```
 
 
+## Mixed effects models
+LInear mixed effects 3
+```{r}
+library(lme4)
+library(lmerTest) # This gives you stat. sig.
 
+# t-stat requires degrees of freedom. Creator of lme4 thinks you can't accurately get dfs. But usually you have more than enough dfs for it to not make a difference.
+
+data(package = "lme4")
+head(InstEval)
+
+mod7 <- lmer(y ~ service + (1|s), data = InstEval)
+summary(mod7)
+```
 
 
 

@@ -1,0 +1,66 @@
+---
+title: "9.24.24 SQL"
+format: html
+editor: visual
+---
+
+# 9.24.24 (cont.)
+
+## SQL
+Many different flavors of SQL. We will use SQLite.
+
+### Lahman example : Baseball
+```{r}
+library(DBI) # necessary evil. Holds SQL to R, handles backend so they can talk to each other
+library(RSQLite)
+
+# Read in SQL file (the fact you can read it in means you don't really need SQL though. SQL used when data is terabytes big that it can't possibly fit to read in everything)
+
+# dbConnect: 2 arguments. What kind of connection/what tool to use? What database (usually it's a pathway to the server the data is stored on)?
+lahman <- dbConnect(SQLite(), "lahman_1871-2022.sqlite")
+# Doesn't really read in data, just load in connection, unlike reading in a .csv.
+
+# What tables are available?
+dbListTables(lahman)
+
+# What variables are inside the "People" table?
+dbListFields(lahman, "People")
+
+```
+
+### Writing SQL Queries
+```{r}
+# query: entire string with statement and clauses
+# statement: "SELECT ____"
+# clauses: e.g., FROM____, LIMIT___, etc.
+dbGetQuery(lahman, "SELECT playerID FROM People LIMIT 5")
+
+# Trick to not type dbGetQuery over and over again
+# Not a great function because you're calling lahman, but it won't help as much.
+gg <- function(query){
+  dbGetQuery(lahman, query)
+}
+
+gg("SELECT * 
+   FROM people 
+   LIMIT 5")
+
+# Style: Usually keywords capitalized, everything else lowercase. But SQL doesn't care about capitalization, so you can do anything you want technically.
+```
+
+
+
+# Q's
+- Interactions: main effects stat. sig. or not stat. sig. if interaction is
+- SQL: for the SQL query w/o gg, why can't you space?
+ 
+
+
+
+
+
+
+
+
+
+
