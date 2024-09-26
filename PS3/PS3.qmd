@@ -1,0 +1,141 @@
+---
+title: "Problem Set 3"
+author: "Tiffany Wu"
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+editor: source
+mainfont: Times New Roman
+---
+
+## Github Repo Link to Problem Set 3:
+[https://github.com/tiffany-wu/Stats506/tree/main/PS3](https://github.com/tiffany-wu/Stats506/tree/main/PS3) 
+
+
+
+## Problem 1 - Vision
+
+This problem will require you to learn things we have not covered. Use the R help, or online resources, to figure out the appropriate command(s). Use citation as necessary.
+
+For the “nice tables”, use a package such as kable or stargazer (or find another package) to generate HTML/LaTeX tables for inclusion. The results should be clearly labeled, rounded appropriately, and easily readable.
+
+```{r}
+# Load necessary libraries
+library(kableExtra)
+library(stargazer)
+library(tidyverse)
+library(haven) # to read in .XPT files
+```
+
+
+### a. Download the file VIX_D from this location, and determine how to read it into R. Then download the file DEMO_D from this location. Note that each page contains a link to a documentation file for that data set. Merge the two files to create a single data.frame, using the SEQN variable for merging. Keep only records which matched. Print out your total sample size, showing that it is now 6,980.
+
+```{r}
+# Read the .XPT files -- these are SAS transport files
+vix <- read_xpt("VIX_D.xpt")
+demo <- read_xpt("DEMO_D.xpt")
+
+# Merge, using SEQN as the key
+merged_data <- merge(vix, demo, by = "SEQN")
+
+# Check the total sample size
+nrow(merged_data) # Should be 6,980
+```
+
+### b. Without fitting any models, estimate the proportion of respondents within each 10-year age bracket (e.g. 0-9, 10-19, 20-29, etc) who wear glasses/contact lenses for distance vision. Produce a nice table with the results.
+
+Based on the codebook documents:
+
+* RIDAGEYR is age in years, which is what we would want to be able to put respondents in 10-year age brackets. 85 years is the oldest.
+* VIQ150 is the question for: Glasses/contact lenses for near work? 1 is yes, 2 is no, 9 is don't know, NA is missing.
+
+# Q: MISSING VALUES FOR WEAR_GLASSES IS A LOT??????
+
+```{r}
+# Create age groups
+age_groups <- merged_data %>%
+  select(id = SEQN, 
+         age = RIDAGEYR,
+         wears_glasses = VIQ150) %>%
+  mutate(age_group = case_when(
+    age >= 0 & age < 10 ~ "0-9",
+    age >= 10 & age < 20 ~ "10-19",
+    age >= 20 & age < 30 ~ "20-29",
+    age >= 30 & age < 40 ~ "30-39",
+    age >= 40 & age < 50 ~ "40-49",
+    age >= 50 & age < 60 ~ "50-59",
+    age >= 60 & age < 70 ~ "60-69",
+    age >= 70 & age < 80 ~ "70-79",
+    age >= 85 & age < 90 ~ "80-89",
+    TRUE ~ NA_character_  # For ages outside the specified range
+  )) %>%
+  drop_na(age_group)  # Remove missing age group entries
+
+psych::describe(age_groups) # Only 1998	respondents have glasses infO??
+# Convert wears_glasses variable into a binary outcome
+# 1 = wears glasses, 2 = doesn't wear
+age_groups_bin <- age_groups %>%
+  mutate(wears_glasses = ifelse(wears_glasses == 1, 1, 0))
+
+# Summarize the proportion of glasses wearers by age group
+proportion_wear_glasses <- age_groups_bin %>%
+  group_by(age_group) %>%
+  
+  summarize(proportion_wear_glasses = mean(wears_glasses, na.rm = TRUE),
+            count = sum(!is.na(wears_glasses)))  # Count of respondents in each group
+
+# Display the result
+print(proportion_wear_glasses)
+
+# Calculate proportion of respondents who wear glasses or contacts
+table_wear_glasses <- prop.table(table(merged_data$age_group, merged_data$wear_glasses), 1)
+
+# Install kable for a nice table
+library(knitr)
+
+# Generate a nice table
+kable(table_wear_glasses, digits = 2, col.names = c("Age Group", "Proportion Wearing Glasses/Contacts"))
+```
+
+
+### c. Fit three logistic regression models predicting whether a respondent wears glasses/contact lenses for distance vision. Predictors:
+
+#### 1. age
+#### 2. age, race, gender
+#### 3. age, race, gender, Poverty Income ratio
+
+### Produce a table presenting the estimated odds ratios for the coefficients in each model, along with the sample size for the model, the pseudo-R2, and AIC values.
+
+### d. From the third model from the previous part, test whether the odds of men and women being wears of glasess/contact lenses for distance vision differs. Test whether the proportion of wearers of glasses/contact lenses for distance vision differs between men and women. Include the results of the each test and their interpretation.
+
+## Problem 2 - Sakila
+
+Load the “sakila” database discussed in class into SQLite. It can be downloaded from https://github.com/bradleygrant/sakila-sqlite3.
+
+For these problems, do not use any of the tables whose names end in _list.
+
+### a. What is the oldest movie (earliest release year) in the database? Answer this with a single SQL query.
+
+
+### For each of the following questions, solve them in two ways: First, use SQL query or queries to extract the appropriate table(s), then use regular R operations on those data.frames to answer the question. Second, use a single SQL query to answer the question.
+
+### b. What genre of movie is the least common in the data, and how many movies are of this genre?
+
+### c. Identify which country or countries have exactly 13 customers.
+
+## Problem 3 - US Records
+
+Download the “US - 500 Records” data from https://www.briandunning.com/sample-data/ and import it into R. This is entirely fake data - use it to answer the following questions.
+
+### a. What proportion of email addresses are hosted at a domain with TLD “.com”? (in the email, “angrycat@freemail.org”, “freemail.org” is the domain, and “.org” is the TLD (top-level domain).)
+
+### b. What proportion of email addresses have at least one non alphanumeric character in them? (Excluding the required “@” and “.” found in every email address.)
+
+### c. What are the top 5 most common area codes amongst all phone numbers? (The area code is the first three digits of a standard 10-digit telephone number.)
+
+### d. Produce a histogram of the log of the apartment numbers for all addresses. (You may assume any number at the end of the an address is an apartment number.)
+
+### e. Benford’s law is an observation about the distribution of the leading digit of real numerical data. Examine whether the apartment numbers appear to follow Benford’s law. Do you think the apartment numbers would pass as real data?
+
