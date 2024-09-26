@@ -35,8 +35,19 @@ dbListFields(lahman, "People")
 # clauses: e.g., FROM____, LIMIT___, etc.
 dbGetQuery(lahman, "SELECT playerID FROM People LIMIT 5")
 
+dbGetQuery(lahman, "
+           SELECT playerID 
+           FROM People 
+           LIMIT 5
+           ")
+
+dbGetQuery(lahman, "SELECT playerID 
+           FROM People 
+           LIMIT 5
+           ")
+
 # Trick to not type dbGetQuery over and over again
-# Not a great function because you're calling lahman, but it won't help as much.
+# Not a great function because you're calling lahman from the global environment, but it's helpful.
 gg <- function(query){
   dbGetQuery(lahman, query)
 }
@@ -47,6 +58,228 @@ gg("SELECT *
 
 # Style: Usually keywords capitalized, everything else lowercase. But SQL doesn't care about capitalization, so you can do anything you want technically.
 ```
+
+# 9.26.24 SQL (cont.)
+```{r}
+# List all the tables available in lahman
+dbListTables(lahman)
+
+# List all the variables in a particular table
+dbListFields(lahman, "HallofFame")
+
+# Get number of columns: 9 columns, 9 variables
+length(dbListFields(lahman, "HallofFame"))
+
+# Get number of rows: Count any variable
+gg("SELECT 
+   COUNT(playerid) # collapse table down to the number of counts
+   FROM halloffame")
+
+# Conditionals
+gg("SELECT playerid
+   FROM halloffame
+   WHERE (yearid >2004 AND yearid <2010) OR yearid > 2015")
+
+# Strings
+dbListFields(lahman, "people")
+
+gg("SELECT COUNT(namefirst)
+   FROM people
+   WHERE namelast = 'Griffey' # SINGLE quotations, to not be confused with the double quotations in the string, and SINGLE equal sign
+   LIMIT 5
+   ")
+
+gg("SELECT COUNT(namefirst)
+   FROM people
+   WHERE namelast = 'Griffey' OR namelast = 'Aaron'
+   LIMIT 5
+   ")
+
+# IN gives you same as the OR statement above
+gg("SELECT COUNT(namefirst)
+   FROM people
+   WHERE namelast IN ('Griffey', 'Aaron')
+   LIMIT 5
+   ")
+
+gg("SELECT namefirst FROM people")
+
+# Partial matches: LIKE, % is a wildcard, match if any name has iff in it
+gg("SELECT namelast
+   FROM people
+   WHERE namelast LIKE '%iff%'")
+```
+
+## Matching-- see above
+
+## Sorting
+```{r}
+# See Batting vars
+dbListFields(lahman, "batting")
+
+gg("SELECT playerid, hr
+   FROM batting
+   WHERE hr > 10
+   ORDER BY hr #-hr will sort by descending
+   LIMIT 10")
+```
+
+## Functions
+```{r}
+gg("
+   SELECT *
+   FROM batting")
+
+gg("SELECT SUM(hr) # Sum gets everyone
+   FROM batting")
+
+# Collapse by playerid
+gg("SELECT playerid, SUM(hr)
+   FROM batting
+   GROUP BY playerid")
+
+# Which player has the most homeruns?
+gg("SELECT playerid, SUM(hr)
+   FROM batting
+   GROUP BY playerid
+   ORDER BY -SUM(hr)")
+
+# Renaming
+gg("SELECT playerid, SUM(hr) AS sum_hr
+   FROM batting
+   GROUP BY playerid
+   ORDER BY -sum_hr")
+
+# Get a table of only people who have over 300 homeruns
+# # HAVING has to go AFTER group by, HAVING works on calculated variables, WHERE won't work
+gg("SELECT playerid, SUM(hr) AS sum_hr
+   FROM batting
+   WHERE yearid > 2010
+   GROUP BY playerid
+   HAVING sum_hr >340 
+   ORDER by -sum_hr
+   ")
+```
+
+# SQL Joins
+```{r}
+# 3 people with > 340 hrs
+gg("SELECT playerid, SUM(hr) AS sum_hr
+   FROM batting
+   WHERE yearid > 2010
+   GROUP BY playerid
+   HAVING sum_hr >340 
+   ORDER by -sum_hr
+   ")
+
+# Let's try to get their names, but it's not in the batting database
+dbListFields(lahman, "People")
+
+# Merge People with the 3 batting people we got
+# Query 1 pulls the 3 batting people, Query 2 will inner join to get their names
+gg("SELECT playerid, SUM(hr) AS sum_hr
+   FROM batting
+   WHERE yearid > 2010
+   GROUP BY playerid
+   HAVING sum_hr >340 
+   ORDER by -sum_hr
+   ")
+
+gg("SELECT playerid, namefirst, namelast
+   FROM people")
+
+# Joins work by: Taking 1 of the queries, and putting the other one in the first
+
+# If a variable name appears in both tables, you need to preface it with the table name (e.g. batting.playerid)
+gg("SELECT batting.playerid, hr, namelast
+   FROM batting 
+   INNER JOIN people ON batting.playerid = people.playerid")
+
+# Shortening names
+gg("SELECT b.playerid, hr, namelast
+   FROM batting AS b
+   INNER JOIN people AS p 
+    ON b.playerid = p.playerid")
+
+# Doing the complicated join
+gg("SELECT b.playerid, SUM(hr) AS sum_hr
+   FROM batting AS b
+   INNER JOIN (SELECT playerid, namefirst, namelast
+                FROM people) AS p
+                ON b.playerid = p.playerid
+   WHERE yearid > 2010
+   GROUP BY b.playerid
+   HAVING sum_hr >340 
+   ORDER by -sum_hr
+   ")
+
+# Another example: Get last school each player went to. Collapsing way
+gg("SELECT *
+   FROM collegeplaying
+   LIMIT 10")
+
+gg("SELECT playerid, MAX(yearid) AS last_year, schoolid
+   FROM collegeplaying
+   GROUP BY playerid
+   LIMIT 10")
+
+# Or, you can do it this way too:
+gg("SELECT *
+   FROM collegeplaying
+   GROUP BY playerid
+   HAVING yearid = MAX(yearid)
+   LIMIT 10")
+
+gg("SELECT *
+   FROM awardsplayers")
+
+# Get unique IDs
+gg("SELECT DISTINCT(awardid)
+   FROM awardsplayers")
+
+gg("SELECT playerid, awardid
+   FROM awardsplayers
+   WHERE awardid = 'Rookie of the Year'")
+gg("SELECT playerid, awardid
+   FROM awardsplayers
+   WHERE awardid LIKE 'Rookie%'")
+
+# Keep all players who went to college, not all who got an award though
+gg("SELECT a.playerid, c.schoolid
+   FROM collegeplaying AS c
+   LEFT JOIN
+      (SELECT playerid, awardid
+      FROM awardsplayers
+      WHERE awardid LIKE 'Rookie%') AS a
+      ON c.playerid = a.playerid
+   GROUP BY a.playerid
+   HAVING yearid = MAX(yearid)
+   LIMIT 10")
+
+# Use the output above in a new table
+gg("SELECT schoolid, COUNT(schoolid) AS count
+   FROM (SELECT a.playerid, c.schoolid
+        FROM collegeplaying AS c
+        LEFT JOIN
+           (SELECT playerid, awardid
+            FROM awardsplayers
+             WHERE awardid LIKE 'Rookie%') AS a
+            ON c.playerid = a.playerid
+         GROUP BY a.playerid
+        HAVING yearid = MAX(yearid))
+   GROUP BY schoolid
+   ORDER BY -count")
+# Once you're outside join, you have 1 table, so you don't have to specify the schoolid and count tables
+```
+
+# Sakila: 
+Blockbuster-esque example, fake data.
+```{r}
+sakila <- dbConnect(SQLite(), "C:\Users\tiffa\University of Michigan Dropbox\Tiffany Wu\Tiffany Wu’s files\Documents\Stats506/PS3/sakila_master.sqlite")
+```
+
+
+
 
 
 
