@@ -13,8 +13,6 @@ mainfont: Times New Roman
 ## Github Repo Link to Problem Set 3:
 [https://github.com/tiffany-wu/Stats506/tree/main/PS3](https://github.com/tiffany-wu/Stats506/tree/main/PS3) 
 
-
-
 ## Problem 1 - Vision
 
 This problem will require you to learn things we have not covered. Use the R help, or online resources, to figure out the appropriate command(s). Use citation as necessary.
@@ -51,6 +49,7 @@ Based on the codebook documents:
 * RIDAGEYR is age in years, which is what we would want to be able to put respondents in 10-year age brackets. 85 years is the oldest.
 * VIQ150 is the question for: Glasses/contact lenses for near work? 1 is yes, 2 is no, 9 is don't know, NA is missing.
 
+*QUESTION*
 # Q: MISSING VALUES FOR WEAR_GLASSES IS A LOT??????
 
 ```{r}
@@ -71,7 +70,8 @@ age_groups <- merged_data %>%
     age >= 85 & age < 90 ~ "80-89",
     TRUE ~ NA_character_  # For ages outside the specified range
   )) %>%
-  drop_na(age_group)  # Remove missing age group entries
+  drop_na(age_group) %>% # Remove missing age group entries
+  mutate(wears_glasses = as.factor(wears_glasses))
 
 psych::describe(age_groups) # Only 1998	respondents have glasses infO??
 # Convert wears_glasses variable into a binary outcome
@@ -106,36 +106,364 @@ kable(table_wear_glasses, digits = 2, col.names = c("Age Group", "Proportion Wea
 #### 2. age, race, gender
 #### 3. age, race, gender, Poverty Income ratio
 
+```{r}
+# Make overall df for logistic regressions without taking out age group NAs
+log_reg_df <- merged_data %>%
+  select(id = SEQN, 
+         age = RIDAGEYR,
+         wears_glasses = VIQ150,
+         gender = RIAGENDR,
+         race = RIDRETH1,
+         poverty_income_ratio = INDFMPIR
+         ) %>%
+  mutate(wears_glasses = ifelse(wears_glasses == 1, 1, 0)) %>%
+  mutate(age_group = case_when(
+    age >= 0 & age < 10 ~ "0-9",
+    age >= 10 & age < 20 ~ "10-19",
+    age >= 20 & age < 30 ~ "20-29",
+    age >= 30 & age < 40 ~ "30-39",
+    age >= 40 & age < 50 ~ "40-49",
+    age >= 50 & age < 60 ~ "50-59",
+    age >= 60 & age < 70 ~ "60-69",
+    age >= 70 & age < 80 ~ "70-79",
+    age >= 85 & age < 90 ~ "80-89",
+    TRUE ~ NA_character_  # For ages outside the specified range
+  )) %>%
+  mutate(race = as.factor(race),
+         gender = as.factor(gender))
+
+# Fit Model 1: age as predictor
+model1 <- glm(wears_glasses ~ age, 
+              data = log_reg_df, 
+              family = binomial)
+summary(model1)
+
+# Fit Model 2: age, race, and gender as predictors
+# Ensure that `race` and `gender` variables are in the dataset.
+model2 <- glm(wears_glasses ~ age + race + gender, 
+              data = log_reg_df, 
+              family = binomial)
+summary(model2)
+
+# Fit Model 3: age, race, gender, and poverty income ratio as predictors
+# Ensure `poverty_income_ratio` is included in the dataset.
+model3 <- glm(wears_glasses ~ age + race + gender + poverty_income_ratio, 
+              data = log_reg_df, 
+              family = binomial)
+summary(model3)
+```
+
+
 ### Produce a table presenting the estimated odds ratios for the coefficients in each model, along with the sample size for the model, the pseudo-R2, and AIC values.
 
+*QUESTION*
+# Q. MAKE SURE YOU UNDERSTAND INTERPRETATION!
+
+```{r}
+# Using stargazer to create table--stargazer needs psc1 for pseudo_R2 according to ChatGPT. Also tried keep.stat, but it doesn't work, so we need to manually add this.
+library(pscl)
+# Calculate pseudo-R² for each model
+pseudo_r2_model1 <- pscl::pR2(model1)["McFadden"]
+pseudo_r2_model2 <- pscl::pR2(model2)["McFadden"]
+pseudo_r2_model3 <- pscl::pR2(model3)["McFadden"]
+
+# Try first
+stargazer(model1, model2, model3,
+          type = "text", # to view in RStudio-- comment out when actually rendering
+          digits = 2,
+          apply.coef = exp, # Exponentiate coefs to get odds ratios
+          keep.stat = c("rsq", "adj.rsq", "ll", "aic", "n"),
+          add.lines = list(
+            c("Pseudo R²", round(pseudo_r2_model1, 3), round(pseudo_r2_model2, 3), round(pseudo_r2_model3, 3))
+          ),
+          title = "Logistic Regression Models Predicting Glasses Use",
+  #        covariate.labels = c("Age", "Race", "Gender", "Poverty Income Ratio"),
+          dep.var.labels = "Wears Glasses (Odds Ratio)")
+```
+
+
 ### d. From the third model from the previous part, test whether the odds of men and women being wears of glasess/contact lenses for distance vision differs. Test whether the proportion of wearers of glasses/contact lenses for distance vision differs between men and women. Include the results of the each test and their interpretation.
+
+Can't we just look at the coefficient in model 3? Do we run different models? What's the difference between odds and proportion?
+
+*QUESTION*
+# Q. MULTIPLE TESTS? WHY CAN'T WE JUST LOOK AT THE COEF IN MODEL 3? CHI SQUARE TEST OF IND FOR PROPORTION?
+
+ChatGPT said: linfct = mcp(gender = "Tukey"): This tells glht() to conduct a Tukey-style post-hoc comparison on the gender variable. Since we are comparing gender levels (e.g., male vs. female), this approach is appropriate for testing whether the effect of gender on wearing glasses is statistically significant.
+
+Interpretation: Estimate (0.29148): This is the difference in log-odds between men and women, where a positive value indicates higher log-odds of wearing glasses for men compared to women.
+Conclusion: Men are significantly more likely to wear glasses than women, with a log-odds difference of 0.29148, and this difference is statistically significant at the 5% level.
+
+For log-odds diff:
+```{r}
+# General linear hypothesis testing
+library(multcomp)
+
+# Use glht to test the gender coefficient in model3
+gender_test <- glht(model3, linfct = mcp(gender = "Tukey"))
+
+# Summary of the test
+summary(gender_test)
+```
+
+For proportion diff:
+ChatGPT: To test whether the proportions of glasses wearers differ between men and women, you need to use a two-proportion test. A common method to perform this test is using a Chi-square test of independence or a z-test for proportions. In R, this is often done with the prop.test() function or the chisq.test() function.
+
+
+The Chi-square test works to test the association between categorical variables by comparing the observed frequencies in a contingency table to the expected frequencies that would occur if the variables were independent. It helps answer the question: "Is there a statistically significant association between two categorical variables?"
+The Chi-square test compares proportions by evaluating how the observed counts in each category differ from the expected counts if there was no association between the variables. Essentially, it determines if the distribution of one categorical variable (e.g., glasses use) is different between levels of another categorical variable (e.g., gender).
+```{r}
+# Contingency table
+# Gender = 2 is FEMALE
+gender_glasses_table <- table(log_reg_df$gender, log_reg_df$wears_glasses)
+print(gender_glasses_table)
+
+# Perform a chi-square test
+# If the p-value is less than 0.05, you can conclude that there is a statistically significant difference in the proportion of glasses wearers between men and women.
+chisq_test_result <- chisq.test(gender_glasses_table)
+print(chisq_test_result)
+```
 
 ## Problem 2 - Sakila
 
 Load the “sakila” database discussed in class into SQLite. It can be downloaded from https://github.com/bradleygrant/sakila-sqlite3.
+```{r}
+library(DBI) # necessary evil. Holds SQL to R, handles backend so they can talk to each other
+library(RSQLite)
+
+# dbConnect: 2 arguments. What kind of connection/what tool to use? What database (usually it's a pathway to the server the data is stored on)?
+sakila <- dbConnect(SQLite(), "sakila_master.db")
+
+# Trick to not type dbGetQuery over and over again
+# Not a great function because you're calling lahman from the global environment, but it's helpful.
+gg <- function(query){
+  dbGetQuery(sakila, query)
+}
+
+# What tables are available?
+dbListTables(sakila)
+
+```
 
 For these problems, do not use any of the tables whose names end in _list.
 
 ### a. What is the oldest movie (earliest release year) in the database? Answer this with a single SQL query.
 
+*QUESTION*
+# Q: HELP I'M DOING THIS WRONG. EVERY FILM IS FROM 2006???
+```{r}
+# What variables are inside the "film" table?
+dbListFields(sakila, "film")
+
+# SQL query
+gg("SELECT title, release_year
+   FROM film
+   WHERE release_year = (SELECT MIN(release_year) FROM film)")
+
+gg("SELECT title, release_year
+   FROM film
+   ORDER BY -release_year")
+
+gg("SELECT release_year FROM film")
+```
+
+
 
 ### For each of the following questions, solve them in two ways: First, use SQL query or queries to extract the appropriate table(s), then use regular R operations on those data.frames to answer the question. Second, use a single SQL query to answer the question.
 
 ### b. What genre of movie is the least common in the data, and how many movies are of this genre?
+```{r}
+# Extract information on film genres
+film_category_query <- "
+  SELECT category.name AS genre, COUNT(film.film_id) AS count
+  FROM film
+  JOIN film_category ON film.film_id = film_category.film_id
+  JOIN category ON film_category.category_id = category.category_id
+  GROUP BY category.name;
+"
+gg(film_category_query)
+ 
+# Get the result as a data.frame
+film_category_data <- gg(film_category_query)
+
+# Find the least common genre and its count using R operations
+least_common_genre <- film_category_data[which.min(film_category_data$count), ]
+print(least_common_genre)
+
+# Use SQL to answer the question:
+gg("SELECT category.name AS genre, COUNT(film.film_id) AS count
+  FROM film
+  JOIN film_category ON film.film_id = film_category.film_id
+  JOIN category ON film_category.category_id = category.category_id
+  GROUP BY category.name
+  ORDER BY count ASC
+  LIMIT 1"
+)
+
+gg("SELECT category.name AS genre, COUNT(film.film_id) AS count
+  FROM film"
+)
+gg("SELECT film_id, COUNT(film_id)
+   FROM film")
+
+```
+
 
 ### c. Identify which country or countries have exactly 13 customers.
+```{r}
+# Extract country and customer count information
+customer_country_query <- 
+  "SELECT country.country, COUNT(customer.customer_id) AS count
+  FROM customer
+  JOIN address ON customer.address_id = address.address_id
+  JOIN city ON address.city_id = city.city_id
+  JOIN country ON city.country_id = country.country_id
+  GROUP BY country.country"
+
+gg(customer_country_query)
+
+# Get the result as a data.frame
+customer_country_data <- gg(customer_country_query)
+
+# Find countries with exactly 13 customers using R operations
+countries_with_13_customers <- customer_country_data[customer_country_data$count == 13, ]
+print(countries_with_13_customers)
+
+# Use SQL
+gg("SELECT country.country, COUNT(customer.customer_id) AS count
+  FROM customer
+  JOIN address ON customer.address_id = address.address_id
+  JOIN city ON address.city_id = city.city_id
+  JOIN country ON city.country_id = country.country_id
+  GROUP BY country.country
+  HAVING count = 13")
+```
+
 
 ## Problem 3 - US Records
 
 Download the “US - 500 Records” data from https://www.briandunning.com/sample-data/ and import it into R. This is entirely fake data - use it to answer the following questions.
 
+```{r}
+# Read in data
+library(readr)
+us_500 <- read_csv("us-500.csv")
+```
+
 ### a. What proportion of email addresses are hosted at a domain with TLD “.com”? (in the email, “angrycat@freemail.org”, “freemail.org” is the domain, and “.org” is the TLD (top-level domain).)
+
+(?<=@)[^.]+\\.(.+):
+
+* (?<=@): A positive lookbehind to ensure that we are capturing the part after the '@' symbol.
+* [^.]+: Matches any characters until the first period, which represents the domain.
+* \\.(.+): Captures the TLD part after the dot.
+
+
+filter(str_detect(tld, "\\.com$")):
+
+* str_detect(): Checks if the TLD ends with .com.
+* \\.com$: Matches .com at the end of the string.
+
+```{r}
+# Load necessary library for string manipulation
+library(stringr)
+
+# Extract the domain and TLD from email addresses using a regular expression
+# (?<=@)[^.]+\\.(.+) matches the part of the email after '@' and captures the TLD
+us_500_2 <- us_500 %>%
+  mutate(tld = str_extract(email, "(?<=@)[^.]+\\.(.+)"))  # Extracting the domain and TLD
+
+# Filter out only ".com" TLDs
+com_emails <- us_500_2 %>%
+  filter(str_detect(tld, "\\.com$"))
+
+# Calculate the proportion of ".com" email addresses
+nrow(com_emails) / nrow(us_500_2)
+
+```
+
 
 ### b. What proportion of email addresses have at least one non alphanumeric character in them? (Excluding the required “@” and “.” found in every email address.)
 
+[^...] is a negated character class that matches any character not listed within the brackets.
+a-zA-Z0-9 matches letters (both upper and lower case) and digits.
+@. matches the required @ and . characters in email addresses.
+So, [^a-zA-Z0-9@.] matches any character that is not a letter, digit, @, or ., which indicates a non-alphanumeric character.
+
+```{r}
+us_500_3 <- us_500 %>%
+  mutate(has_special_char = str_detect(email, "[^a-zA-Z0-9@.]"))
+
+# Filter out rows where 'has_special_char' is TRUE
+special_char_emails <- us_500_3 %>%
+  filter(has_special_char)
+
+# Calculate the proportion of email addresses with at least one non-alphanumeric character
+nrow(special_char_emails) / nrow(us_500)
+```
+
+
 ### c. What are the top 5 most common area codes amongst all phone numbers? (The area code is the first three digits of a standard 10-digit telephone number.)
+```{r}
+# Extract the area code from the phone numbers
+us_500_phone <- us_500 %>%
+  mutate(area_code = str_extract(phone1, "\\d{3}"))
+
+us_500_phone %>%
+  count(area_code, sort = TRUE) %>%
+  slice_head(n = 5)
+```
+
 
 ### d. Produce a histogram of the log of the apartment numbers for all addresses. (You may assume any number at the end of the an address is an apartment number.)
 
+*QUESTION*
+# Q. WHY LOG?
+
+```{r}
+# Extract the last number from address
+apt_nums <-  us_500 %>%
+  mutate(apartment_number = as.numeric(str_extract(address, "\\d+$")))  
+
+# Calculate the logarithm of apartment numbers, excluding missing 
+apt_nums <- apt_nums %>%
+  filter(!is.na(apartment_number)) %>%  # Remove NAs
+  mutate(log_apartment_number = log(apartment_number))
+
+# Create the histogram
+ggplot(apt_nums, aes(x = log_apartment_number)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue3", color = "black") +
+  labs(title = "Histogram of Log of Apartment Numbers",
+       x = "Log of Apartment Number",
+       y = "Count") +
+  theme_minimal()
+```
+
+
 ### e. Benford’s law is an observation about the distribution of the leading digit of real numerical data. Examine whether the apartment numbers appear to follow Benford’s law. Do you think the apartment numbers would pass as real data?
+
+ChatGPT: According to Benford's Law, in many naturally occurring datasets, the leading digit 1 appears about 30% of the time, and the probability decreases for larger digits.
+
+```{r}
+# Extract the leading digit from the apartment numbers
+leading <- apt_nums %>%
+  mutate(leading_digit = as.numeric(str_extract(as.character(apartment_number), "^\\d")))
+
+# Calculate frequency of each leading digit
+leading_digit_freq <- leading %>%
+  count(leading_digit) %>%
+  mutate(proportion = n / sum(n))
+
+# Compare with Benford's Law
+# Calculate the expected Benford's Law proportions
+benford_probs <- tibble(
+  leading_digit = 1:9,
+  expected_proportion = log10((1 + leading_digit) / leading_digit)
+)
+
+# Merge with observed proportions for comparison
+comparison <- left_join(leading_digit_freq, benford_probs, by = "leading_digit")
+print(comparison)
+```
+
 
