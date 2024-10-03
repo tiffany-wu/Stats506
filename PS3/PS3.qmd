@@ -249,6 +249,8 @@ For these problems, do not use any of the tables whose names end in _list.
 
 ### a. What is the oldest movie (earliest release year) in the database? Answer this with a single SQL query.
 
+NEW QUESTION: What year is the oldest movie from, and how many movies were released in that year? Answer this with a single SQL query.
+
 *QUESTION*
 # Q: HELP I'M DOING THIS WRONG. EVERY FILM IS FROM 2006???
 ```{r}
