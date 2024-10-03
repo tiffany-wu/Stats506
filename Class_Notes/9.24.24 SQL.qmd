@@ -75,6 +75,10 @@ gg("SELECT
    COUNT(playerid) # collapse table down to the number of counts
    FROM halloffame")
 
+gg("SELECT 
+   COUNT(playerid) 
+   FROM halloffame")
+
 # Conditionals
 gg("SELECT playerid
    FROM halloffame
@@ -100,6 +104,11 @@ gg("SELECT COUNT(namefirst)
    FROM people
    WHERE namelast IN ('Griffey', 'Aaron')
    LIMIT 5
+   ")
+
+gg("SELECT namelast, COUNT(namefirst)
+   FROM people
+   WHERE namelast IN ('Griffey', 'Aaron')
    ")
 
 gg("SELECT namefirst FROM people")
@@ -131,6 +140,9 @@ gg("
    FROM batting")
 
 gg("SELECT SUM(hr) # Sum gets everyone
+   FROM batting")
+
+gg("SELECT SUM(hr)
    FROM batting")
 
 # Collapse by playerid
@@ -275,9 +287,74 @@ gg("SELECT schoolid, COUNT(schoolid) AS count
 # Sakila: 
 Blockbuster-esque example, fake data.
 ```{r}
-sakila <- dbConnect(SQLite(), "C:\Users\tiffa\University of Michigan Dropbox\Tiffany Wu\Tiffany Wu’s files\Documents\Stats506/PS3/sakila_master.sqlite")
+sakila <- dbConnect(SQLite(), "sakila_master.db")
+
+
 ```
 
+Which actor/actress is most commonly rented?
+```{r}
+# Which actor/actress is most commonly rented?
+gg <- function(query){
+  dbGetQuery(sakila, query)
+}
+
+dbListTables(sakila)
+
+# Need to go from RENTAL to ACTOR tables (from relational map)
+# LEFT JOIN because want to keep everything in RENTAL df
+# List of all film_ids that have been rented
+gg("SELECT i.film_id
+   FROM rental AS r
+   LEFT JOIN inventory AS i ON i.inventory_id = r. inventory_id
+   LIMIT 50")
+
+# INVENTORY and FILM_ACTOR tables both have film_id, so we can join those together. actor_id is the variable we want. We also might want to see their films and use their rental or customer id.
+
+gg("SELECT fa.actor_id, ir.film_id, ir.customer_id
+   FROM film_actor AS fa
+   RIGHT JOIN (SELECT i.film_id, r.customer_id
+             FROM rental AS r
+             LEFT JOIN inventory AS i ON i.inventory_id = r. inventory_id) 
+   AS ir ON ir.film_id = fa.film_id
+   ORDER BY ir.film_id, ir.customer_id, fa.actor_id
+   LIMIT 50
+   ")
+# We want to keep all film IDs but we don't care if there are all actors in the actor database. So RIGHT join. We only keep actors in the rental database.
+
+# Going to the actor table to get first and last names of actors
+gg("SELECT a.first_name, a.last_name, fari.actor_id, fari.film_id, fari.customer_id
+   FROM actor AS a
+   RIGHT JOIN(
+             SELECT fa.actor_id, ir.film_id, ir.customer_id
+             FROM film_actor AS fa
+             RIGHT JOIN (SELECT i.film_id, r.customer_id
+                       FROM rental AS r
+                       LEFT JOIN inventory AS i ON i.inventory_id = r. inventory_id) 
+             AS ir ON ir.film_id = fa.film_id
+             ORDER BY ir.film_id, ir.customer_id, fa.actor_id)
+   AS fari ON fari.actor_id = a.actor_id
+   LIMIT 10")
+
+# COUNT how often first/last name pairs appear together, so use actor_id
+gg("SELECT COUNT(a.actor_id), a.first_name, a.last_name, fari.actor_id, fari.film_id, fari.customer_id
+   FROM actor AS a
+   RIGHT JOIN(
+             SELECT fa.actor_id, ir.film_id, ir.customer_id
+             FROM film_actor AS fa
+             RIGHT JOIN (SELECT i.film_id, r.customer_id
+                       FROM rental AS r
+                       LEFT JOIN inventory AS i ON i.inventory_id = r. inventory_id) 
+             AS ir ON ir.film_id = fa.film_id
+             ORDER BY ir.film_id, ir.customer_id, fa.actor_id)
+   AS fari ON fari.actor_id = a.actor_id
+   GROUP BY a.actor_id
+   ORDER BY -COUNT(a.actor_id)
+   LIMIT 10")
+# COUNT = 0 for NAs hints to you that one of your merges probably isn't perfect. Should debug at some point, so probably one of the right joins should be an inner join
+
+# GINA DEGENERES, with 753 rentals
+```
 
 
 

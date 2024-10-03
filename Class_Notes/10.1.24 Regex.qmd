@@ -1,0 +1,245 @@
+---
+title: "10.1.24 Regex"
+format: html
+editor: visual
+---
+
+# 10.1.24 Class Notes
+
+Identifying patterns in text.
+
+String in R are "abc" or 'abc'.
+
+But if you need the string to include a quotation, use the other one inside. E.g. "this is a 'scare quote'".
+
+"this is a \"scare quote\""
+
+```{r}
+typeof("abc")
+
+"this is a 'scare quote'"
+'this is a "scare quote"'
+
+print("abc\ndef") # prints as vector, with characters inside vector
+cat("abc\ndef") # cat says this is just text, produces nicer output. \n is an escape character
+
+cat("abc\"def") # \ backslash says to not recognize the " in the middle as a quotation but as part of the text
+
+paste("a", "b")
+
+paste(c("a", "b"), c("c", "d")) # "a c" "b d" because VECTORIZED operation
+
+paste(c("a", "b"), c("c", "d"), sep = "X") # "aXc" "bXd"
+
+paste(c("a", "b"), c("c", "d"), collapse = "___") # "a c___b d" collapse will give you out 1 vector, connecting output together
+
+# String have length 1
+length("abcdef")
+
+# How many characters in the string? escape chars don't count
+nchar("abcdef") #6
+nchar("abcde\nf") #7
+nchar("abcdef\n") #7
+cat(("abcde\nf"))
+
+# substr
+s <- "abcdefghi"
+
+substr(s, 3, 5) # Get strings 3-5 position
+substr(s, 3, 5) <- "XYZ" # replace positions 3-5 with "XYZ". If longer than 3 characters, it will cut off
+s
+substr(s, 3, 5) <- "3" # replace positions 3-5 with "XYZ". If shorter than 3 characters, just replace 1
+s
+
+# grep and grepl
+# grepl returns position, grepl returns logical
+# First argument is search term, second argument is what you want to search inside
+grep("abc", "abcdefgh") #1
+grepl("abc", "abcdefgh") # TRUE
+
+# Prof says grepl is better
+grepl("abc", c("abcdefgh", "jioelkl")) # TRUE FALSE
+grep("ji", c("abcdefgh", "jioelkl")) # 2 because "ji" is found in the second string
+
+sapply(c("abc", "ghi"), FUN = grepl, c("abcedf", "defghi")) #abc is found in first entry but not second, ghi is found in second entry but not first
+```
+
+## Playing around with real data
+```{r}
+# Superpower dataframe
+powers <- readLines("https://raw.githubusercontent.com/nolshru/SuperpowerRandSelector/main/PlaintextSuperpowerList.txt")
+powers <- tolower(powers) # lowercase to avoid complexity
+head(powers)
+
+# grep tells you position in vector that matches "arts"
+grep("arts", powers)
+powers[grep("arts", powers)] # gets the name of the positions
+
+powers[grepl("arts", powers)] # Gets you same output if use grepl
+
+# grepl gives T/F to EVERYONE though, so if it's a dataframe and you want to get binary T/F to put in dataframe, use grepl. grep won't work because it just returns the positions (observation number) that are true
+
+# Does ninpo arts appear in list of powers?
+grep("ninpo arts", powers)
+
+"ninpo arts" %in% powers # TRUE
+```
+
+## What if you want to replace something in string but you don't know where it appears? So you can't use substr.
+
+```{r}
+artpowers <- powers[grepl("arts", powers)]
+
+# Replace art with dog in the powers vector
+sub("art", "dog", artpowers) # sub says do it the first time
+
+gsub("art", "dog", artpowers) # gsub says do it anytime in the string
+# substr automatically rewrites string, but gsub won't unless you assign to a df
+
+# Use regex to only do "arts" when there's a space
+
+# strsplit. Take string abcde and whenever you see b, split it
+strsplit("abcde", "b")
+
+head(strsplit(powers, " ")) # split words if they have a space between them
+```
+
+## Regex
+
+Regex does pattern matching.
+
+Start of string ^pattern
+
+End of string pattern$
+
+```{r}
+## find all powers with an "q" anywhere in the word
+head(powers[grep("q", powers)])
+
+## find all powers starting with "q"
+powers[grep("^q", powers)] # 3 powers
+## find all powers ending with "q"
+powers[grep("q$", powers)] # none
+
+# find powers with either qu or qi. Look for q followed by either u OR i []
+powers[grep("q[ui]", powers)]
+
+
+powers[grep("q[ui]e", powers)]
+
+# Don't match u or i, anything else is game. Carrot inside brackets says NOT. outside brackets says START.
+powers[grep("q[^ui]", powers)]
+
+# Find all powers with 2 concecutive vowels
+powers[grep("[aeiou][aeiou]", powers)]
+powers[grep("[aeiou]{2}", powers)] #match anything in aeiou exactly twice. Same ouput as above
+head(powers[grepl("[aeiou]{2,3}", powers)])
+
+head(powers[grepl("p[e]{1,2}d", powers)])
+
+# + means match 1 or more times
+# * means match 0 or more times
+# ? is 0 or 1 times
+
+head(powers[grep("p[e]+d", powers)])
+head(powers[grep("p[e]*d", powers)])
+head(powers[grep("p[e]?d", powers)])
+
+# Match anything that appears but has to have p (anything) d
+head(powers[grep("p.*d", powers)])
+
+head(powers[grep("p.{2}d", powers)]) # p followed by any 2 things, then d
+
+# To get the dot out, you need to double escape it out. Usually "." is any character.
+grepl("a.c", c("abc", "a.c"))
+
+grepl("a\\.c", c("abc", "a.c")) # first escape tells it to treat the backspace as a regular character, second is for regex
+
+
+```
+
+## Capture Groups
+
+```{r}
+# Capture groups: eed OR ili patterns
+head(powers[grep("(eed|ili)", powers)])
+
+# Match any character first
+# \1 is the capture group, first \ escapes the second \
+grep("[a-z]\\1")
+
+# Match anything that appears twice (e.g., aa, bb, cc)
+head(powers[grep("(.)\\1", powers)])
+
+# Match more than 1 thing multiple times (e.g., aabb, eell). Has to be consecutive
+head(powers[grep("(.)\\1(.)\\2", powers)])
+```
+
+## Extracting the pattern
+```{r}
+a <- "NY Mets"
+pattern <- "M..s"
+grepl(pattern, a)
+
+regout <- regexpr(pattern, a)
+regout
+
+regmatches(a, regout)
+
+# Match any character = ., match any amount of times = *
+# Match anything
+sub(".*(M..s)*", "\\1", a)
+```
+
+LOOK ONLINE CLASS NOTES FOR EXAMPLES.
+
+```{r}
+ils <- sub("^ ", "", ils)
+ils <- sub(" $", "", ils) # This will still give "" as answer
+
+# To get rid of "":
+ils <- sub(" $", "$", ils)  #"$" signifies the END of the string, will get rid of "" as an answer
+```
+
+
+## Airbnb example
+```{r}
+boston <- read.csv("https://data.insideairbnb.com/united-states/ma/boston/2024-06-22/visualisations/listings.csv")
+
+# license variable: want to match anything followed by 6 numbers followed by anything
+# ANYTHING IN PARENTHESES IS IN THE CAPTURE GROUP.
+# Make new vari license_num
+boston$license_num <- sub(".*([0-9]{6}).*|.*", "\\1", boston$license)
+head(boston[, c("license", "license_num")])
+
+
+# How often is the number of bedrooms available is placed in the name - is this a common practice? 
+names <- boston$name
+
+# Number, followed by space OR hyphen 0 or 1 times (?), followed by uppercase or lower case B, followed by "ed", followed by r or s, or some combination of BbDd
+table(grepl("[0-9][ -]?([Bb]ed[rs]|[Bb][Dd])", names))
+# OR
+table(grepl("[0-9][ -]?([b]ed[rs]|bd)", names, ignore.case = TRUE))
+
+matches <- regexpr("[0-9][ ]?([Bb]ed[rs]|[Bb][Dd])", names)
+bdrmlist <- regmatches(names, matches)
+head(bdrmlist)
+
+table(as.numeric(substring(bdrmlist, 1, 1)))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
