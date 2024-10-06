@@ -21,8 +21,10 @@ For the “nice tables”, use a package such as kable or stargazer (or find ano
 
 ```{r}
 # Load necessary libraries
+library(knitr)
 library(kableExtra)
 library(stargazer)
+library(gtsummary)
 library(tidyverse)
 library(haven) # to read in .XPT files
 ```
@@ -46,18 +48,16 @@ nrow(merged_data) # Should be 6,980
 
 Based on the codebook documents:
 
-* RIDAGEYR is age in years, which is what we would want to be able to put respondents in 10-year age brackets. 85 years is the oldest.
-* VIQ150 is the question for: Glasses/contact lenses for near work? 1 is yes, 2 is no, 9 is don't know, NA is missing.
+* RIDAGEYR is age in years, which is what we would want to be able to put respondents in 10-year age brackets. It includes both males and females 12-150 years, but 85 years is the oldest.
+* VIQ220 is the question for: Glasses/contact lenses for distance vision? 1 is yes, 2 is no, 9 is don't know, NA is missing. For coding who wears glasses/contact lenses, we code 1 as yes and 2 and 9 as "no" (since not knowing means you might not wear glasses/contact lenses).
 
-*QUESTION*
-# Q: MISSING VALUES FOR WEAR_GLASSES IS A LOT??????
 
 ```{r}
 # Create age groups
 age_groups <- merged_data %>%
   select(id = SEQN, 
          age = RIDAGEYR,
-         wears_glasses = VIQ150) %>%
+         wears_glasses = VIQ220) %>%
   mutate(age_group = case_when(
     age >= 0 & age < 10 ~ "0-9",
     age >= 10 & age < 20 ~ "10-19",
@@ -67,13 +67,15 @@ age_groups <- merged_data %>%
     age >= 50 & age < 60 ~ "50-59",
     age >= 60 & age < 70 ~ "60-69",
     age >= 70 & age < 80 ~ "70-79",
-    age >= 85 & age < 90 ~ "80-89",
+    age >= 80 & age < 90 ~ "80-89",
     TRUE ~ NA_character_  # For ages outside the specified range
   )) %>%
-  drop_na(age_group) %>% # Remove missing age group entries
+  drop_na(wears_glasses) %>%
   mutate(wears_glasses = as.factor(wears_glasses))
 
-psych::describe(age_groups) # Only 1998	respondents have glasses infO??
+# Check to see that everyone is grouped
+psych::describe(age_groups) 
+
 # Convert wears_glasses variable into a binary outcome
 # 1 = wears glasses, 2 = doesn't wear
 age_groups_bin <- age_groups %>%
@@ -82,36 +84,57 @@ age_groups_bin <- age_groups %>%
 # Summarize the proportion of glasses wearers by age group
 proportion_wear_glasses <- age_groups_bin %>%
   group_by(age_group) %>%
-  
-  summarize(proportion_wear_glasses = mean(wears_glasses, na.rm = TRUE),
-            count = sum(!is.na(wears_glasses)))  # Count of respondents in each group
+  summarize(proportion_wear_glasses = round(mean(wears_glasses, na.rm = TRUE), 2),
+            num_glasses = sum(wears_glasses),
+            total = sum(!is.na(wears_glasses)))  # Count of respondents in each group, check that it sums to 6547
 
 # Display the result
 print(proportion_wear_glasses)
 
-# Calculate proportion of respondents who wear glasses or contacts
-table_wear_glasses <- prop.table(table(merged_data$age_group, merged_data$wear_glasses), 1)
+# Rename columns in the proportion_wear_glasses data frame for stargazer table
+proportion_wear_glasses_renamed <- proportion_wear_glasses %>%
+  rename(
+    "Age Group" = age_group,
+    "Proportion Wearing Glasses" = proportion_wear_glasses,
+    "Number of Glass Wearers" = num_glasses,
+    "Total Count" = total
+  )
 
-# Install kable for a nice table
-library(knitr)
+# Convert the renamed data frame to a matrix to get rid of numbers on LHS (Source: ChatGPT)
+proportion_wear_glasses_matrix <- as.matrix(proportion_wear_glasses_renamed)
 
-# Generate a nice table
-kable(table_wear_glasses, digits = 2, col.names = c("Age Group", "Proportion Wearing Glasses/Contacts"))
+# Create a pretty table using stargazer
+stargazer(proportion_wear_glasses_matrix, 
+       #   type = "text", Switch to HTML when render
+          type = "html",
+          summary = FALSE,
+          title = "Proportion of Glasses Wearers by Age Group",
+          digits = 2)
+
+
 ```
 
 
 ### c. Fit three logistic regression models predicting whether a respondent wears glasses/contact lenses for distance vision. Predictors:
 
 #### 1. age
+
+For this regression, we see that a one year increase in age is positively associated (and statistically significant) with the likelihood that the respondent wears glasses/contact lenses.
+
 #### 2. age, race, gender
+
+Even after controlling for race and gender, we see that the relationship between age and wearing glasses/contact lenses is still positive and statistically significant.
+
 #### 3. age, race, gender, Poverty Income ratio
+
+This relationship remains positive and statistically significant after adding the poverty income ratio as a control variable.
 
 ```{r}
 # Make overall df for logistic regressions without taking out age group NAs
 log_reg_df <- merged_data %>%
   select(id = SEQN, 
          age = RIDAGEYR,
-         wears_glasses = VIQ150,
+         wears_glasses = VIQ220,
          gender = RIAGENDR,
          race = RIDRETH1,
          poverty_income_ratio = INDFMPIR
@@ -153,11 +176,11 @@ model3 <- glm(wears_glasses ~ age + race + gender + poverty_income_ratio,
 summary(model3)
 ```
 
-
 ### Produce a table presenting the estimated odds ratios for the coefficients in each model, along with the sample size for the model, the pseudo-R2, and AIC values.
 
-*QUESTION*
-# Q. MAKE SURE YOU UNDERSTAND INTERPRETATION!
+Below we have a table of the above information, using the stargazer library.
+
+The pseudo-R2 suggests that the models have small explanatory power, and including more predictors slightly improves the fit. The AIC decreases as more predictors are added, suggesting that Model 3 provides the best fit among the three. We see that the main findings are pretty consistent across all 3 models. The odds ratio for age is around 1.02 for all the models and statistically significant, meaning that for each additional year of age, the odds of wearing glasses increase by 2%, holding all else constant. As people get older, they are slightly more likely to wear glasses. All the race variables are also positive and statistically significant, meaning that compared to Mexican Americans (the reference group), people of other races are higher odds of wearing glasses. Females have statistically significantly higher odds (around 65 to 67% higher odds) of wearing glasses/contact lenses compared to males. Lastly, the poverty income ratio (PIR) odds ratio is also positive and statistically significant, meaning that the higher the PIR the greater the odds are of wearing glasses (a one unit increase in PIR increases the odds by about 12%, holding all else constant).
 
 ```{r}
 # Using stargazer to create table--stargazer needs psc1 for pseudo_R2 according to ChatGPT. Also tried keep.stat, but it doesn't work, so we need to manually add this.
@@ -170,6 +193,7 @@ pseudo_r2_model3 <- pscl::pR2(model3)["McFadden"]
 # Try first
 stargazer(model1, model2, model3,
           type = "text", # to view in RStudio-- comment out when actually rendering
+       #   type = "html",
           digits = 2,
           apply.coef = exp, # Exponentiate coefs to get odds ratios
           keep.stat = c("rsq", "adj.rsq", "ll", "aic", "n"),
@@ -177,12 +201,13 @@ stargazer(model1, model2, model3,
             c("Pseudo R²", round(pseudo_r2_model1, 3), round(pseudo_r2_model2, 3), round(pseudo_r2_model3, 3))
           ),
           title = "Logistic Regression Models Predicting Glasses Use",
-  #        covariate.labels = c("Age", "Race", "Gender", "Poverty Income Ratio"),
+          covariate.labels = c("Age", "Other Hispanic", "Non-Hispanic White", "Non-Hispanic Black", "Non-Hispanic Other or Multiracial", "Female", "Poverty Income Ratio"),
           dep.var.labels = "Wears Glasses (Odds Ratio)")
 ```
 
 
-### d. From the third model from the previous part, test whether the odds of men and women being wears of glasess/contact lenses for distance vision differs. Test whether the proportion of wearers of glasses/contact lenses for distance vision differs between men and women. Include the results of the each test and their interpretation.
+### d. From the third model from the previous part, test whether the odds of men and women being wears of glasses/contact lenses for distance vision differs. Test whether the proportion of wearers of glasses/contact lenses for distance vision differs between men and women. Include the results of the each test and their interpretation.
+
 
 Can't we just look at the coefficient in model 3? Do we run different models? What's the difference between odds and proportion?
 
@@ -202,8 +227,11 @@ library(multcomp)
 # Use glht to test the gender coefficient in model3
 gender_test <- glht(model3, linfct = mcp(gender = "Tukey"))
 
+# proportion = predicted value for logistic regression-- look back at the notes!
+gender_test_prop <- glht(model3, "gender2 - gender1 = 0")
+
 # Summary of the test
-summary(gender_test)
+summary(gender_test_prop)
 ```
 
 For proportion diff:
@@ -227,7 +255,9 @@ print(chisq_test_result)
 ## Problem 2 - Sakila
 
 Load the “sakila” database discussed in class into SQLite. It can be downloaded from https://github.com/bradleygrant/sakila-sqlite3.
+
 ```{r}
+# Load in necessary libraries
 library(DBI) # necessary evil. Holds SQL to R, handles backend so they can talk to each other
 library(RSQLite)
 
@@ -247,33 +277,31 @@ dbListTables(sakila)
 
 For these problems, do not use any of the tables whose names end in _list.
 
-### a. What is the oldest movie (earliest release year) in the database? Answer this with a single SQL query.
+### a. What year is the oldest movie from, and how many movies were released in that year? Answer this with a single SQL query.
 
-NEW QUESTION: What year is the oldest movie from, and how many movies were released in that year? Answer this with a single SQL query.
+The oldest movie is from 2006. 1000 movies were release that year. Every movie in this fake database was released in the same year.
 
-*QUESTION*
-# Q: HELP I'M DOING THIS WRONG. EVERY FILM IS FROM 2006???
 ```{r}
 # What variables are inside the "film" table?
 dbListFields(sakila, "film")
 
 # SQL query
-gg("SELECT title, release_year
-   FROM film
-   WHERE release_year = (SELECT MIN(release_year) FROM film)")
+#gg("SELECT title, release_year # First, make sure what you're seeing is real
+#   FROM film
+#   WHERE release_year = (SELECT MIN(release_year) FROM film)")
 
-gg("SELECT title, release_year
+# Single SQL Query
+gg("SELECT count(title), release_year
    FROM film
-   ORDER BY -release_year")
-
-gg("SELECT release_year FROM film")
+   GROUP BY release_year")
 ```
-
-
 
 ### For each of the following questions, solve them in two ways: First, use SQL query or queries to extract the appropriate table(s), then use regular R operations on those data.frames to answer the question. Second, use a single SQL query to answer the question.
 
 ### b. What genre of movie is the least common in the data, and how many movies are of this genre?
+
+The genre with the least common data is Music, which has 51 movies.
+
 ```{r}
 # Extract information on film genres
 film_category_query <- "
@@ -292,6 +320,8 @@ film_category_data <- gg(film_category_query)
 least_common_genre <- film_category_data[which.min(film_category_data$count), ]
 print(least_common_genre)
 
+least_common_genre
+
 # Use SQL to answer the question:
 gg("SELECT category.name AS genre, COUNT(film.film_id) AS count
   FROM film
@@ -302,16 +332,13 @@ gg("SELECT category.name AS genre, COUNT(film.film_id) AS count
   LIMIT 1"
 )
 
-gg("SELECT category.name AS genre, COUNT(film.film_id) AS count
-  FROM film"
-)
-gg("SELECT film_id, COUNT(film_id)
-   FROM film")
-
 ```
 
 
 ### c. Identify which country or countries have exactly 13 customers.
+
+Argentina and Nigeria have exactly 13 customers.
+
 ```{r}
 # Extract country and customer count information
 customer_country_query <- 
@@ -329,6 +356,7 @@ customer_country_data <- gg(customer_country_query)
 
 # Find countries with exactly 13 customers using R operations
 countries_with_13_customers <- customer_country_data[customer_country_data$count == 13, ]
+
 print(countries_with_13_customers)
 
 # Use SQL
@@ -354,14 +382,16 @@ us_500 <- read_csv("us-500.csv")
 
 ### a. What proportion of email addresses are hosted at a domain with TLD “.com”? (in the email, “angrycat@freemail.org”, “freemail.org” is the domain, and “.org” is the TLD (top-level domain).)
 
-(?<=@)[^.]+\\.(.+):
+73.2% of the email addresses are hosted at a domain with TLD ".com". 
+
+To get this proportion, we used the following regex to first extract the domain and TLD--  (?<=@)[^.]+\\.(.+), where:
 
 * (?<=@): A positive lookbehind to ensure that we are capturing the part after the '@' symbol.
 * [^.]+: Matches any characters until the first period, which represents the domain.
 * \\.(.+): Captures the TLD part after the dot.
 
 
-filter(str_detect(tld, "\\.com$")):
+Then, we used filter(str_detect(tld, "\\.com$")) to filter out only the ".com" TLDs:
 
 * str_detect(): Checks if the TLD ends with .com.
 * \\.com$: Matches .com at the end of the string.
@@ -387,10 +417,12 @@ nrow(com_emails) / nrow(us_500_2)
 
 ### b. What proportion of email addresses have at least one non alphanumeric character in them? (Excluding the required “@” and “.” found in every email address.)
 
-[^...] is a negated character class that matches any character not listed within the brackets.
-a-zA-Z0-9 matches letters (both upper and lower case) and digits.
-@. matches the required @ and . characters in email addresses.
-So, [^a-zA-Z0-9@.] matches any character that is not a letter, digit, @, or ., which indicates a non-alphanumeric character.
+24.7% of the email addresses have at least 1 non alphanumeric character. To do this, we used str_detect(email, "[^a-zA-Z0-9@.]")) to identify the non alphanumeric characters, excluding "@" and ".":
+
+* [^...] is a negated character class that matches any character not listed within the brackets.
+* a-zA-Z0-9 matches letters (both upper and lower case) and digits.
+* @. matches the required @ and . characters in email addresses.
+* [^a-zA-Z0-9@.] matches any character that is not a letter, digit, @, or ., which indicates a non-alphanumeric character.
 
 ```{r}
 us_500_3 <- us_500 %>%
@@ -406,6 +438,9 @@ nrow(special_char_emails) / nrow(us_500)
 
 
 ### c. What are the top 5 most common area codes amongst all phone numbers? (The area code is the first three digits of a standard 10-digit telephone number.)
+
+The top 5 most common area codes are: 973, 212, 215, 410, and 201.
+
 ```{r}
 # Extract the area code from the phone numbers
 us_500_phone <- us_500 %>%
@@ -418,9 +453,6 @@ us_500_phone %>%
 
 
 ### d. Produce a histogram of the log of the apartment numbers for all addresses. (You may assume any number at the end of the an address is an apartment number.)
-
-*QUESTION*
-# Q. WHY LOG?
 
 ```{r}
 # Extract the last number from address
@@ -441,10 +473,11 @@ ggplot(apt_nums, aes(x = log_apartment_number)) +
   theme_minimal()
 ```
 
-
 ### e. Benford’s law is an observation about the distribution of the leading digit of real numerical data. Examine whether the apartment numbers appear to follow Benford’s law. Do you think the apartment numbers would pass as real data?
 
-ChatGPT: According to Benford's Law, in many naturally occurring datasets, the leading digit 1 appears about 30% of the time, and the probability decreases for larger digits.
+According ChatGPT, Benford's Law refers to the phenomenon that, in many naturally occurring datasets, the leading digit 1 appears about 30% of the time, and the probability decreases for larger digits. Benford's Law is also known as the first-digit law. In other words, the leading digit is more likely to be a smaller number than a bigger one.
+
+We generate the expected Benford's Law proportions using the equation given to us by ChatGPT and compare it below with the frequency of leading digits in our us_500 dataset. In the us_500 dataset, all leading digits have similar frequences of appearing, which means that the aparment numbers *would not pass* as real data according to Benford's Law.
 
 ```{r}
 # Extract the leading digit from the apartment numbers
@@ -454,13 +487,13 @@ leading <- apt_nums %>%
 # Calculate frequency of each leading digit
 leading_digit_freq <- leading %>%
   count(leading_digit) %>%
-  mutate(proportion = n / sum(n))
+  mutate(us_500_proportion = n / sum(n))
 
 # Compare with Benford's Law
 # Calculate the expected Benford's Law proportions
 benford_probs <- tibble(
   leading_digit = 1:9,
-  expected_proportion = log10((1 + leading_digit) / leading_digit)
+  benford_proportion = log10((1 + leading_digit) / leading_digit)
 )
 
 # Merge with observed proportions for comparison
