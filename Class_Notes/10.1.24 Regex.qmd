@@ -219,16 +219,29 @@ names <- boston$name
 # Number, followed by space OR hyphen 0 or 1 times (?), followed by uppercase or lower case B, followed by "ed", followed by r or s, or some combination of BbDd
 table(grepl("[0-9][ -]?([Bb]ed[rs]|[Bb][Dd])", names))
 # OR
-table(grepl("[0-9][ -]?([b]ed[rs]|bd)", names, ignore.case = TRUE))
+table(grepl("[0-9][ -]?([b]ed[rs]|bd)", names, ignore.case = TRUE)) # ignore.case doesn't do ed/rs
 
 matches <- regexpr("[0-9][ ]?([Bb]ed[rs]|[Bb][Dd])", names)
 bdrmlist <- regmatches(names, matches)
 head(bdrmlist)
 
 table(as.numeric(substring(bdrmlist, 1, 1)))
+
+# 10 bedroom house-- add a "+"
+names[grep("0[ ]?([Bb]ed[rs]|[Bb][Dd])", names)]
+
+matches <- regexpr("[0-9]+[ ]?([Bb]ed[rs]|[Bb][Dd])", names)
+bdrmlist <- regmatches(names, matches)
+table(as.numeric(substr(bdrmlist, 1, 1))) # substring will only pull out the 1st position
+
+matches <- regexpr("[0-9]+", bdrmlist)
+table(as.numeric(regmatches(bdrmlist, matches)))
 ```
 
-
+# Q's
+- Interactions: main effects stat. sig. or not stat. sig. if interaction is
+- Line 220 vs. 221, why is the result different? 
+- line 233, why did the first one not give you 1-10?
 
 
 

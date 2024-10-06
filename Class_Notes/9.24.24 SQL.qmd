@@ -360,9 +360,7 @@ gg("SELECT COUNT(a.actor_id), a.first_name, a.last_name, fari.actor_id, fari.fil
 
 
 
-# Q's
-- Interactions: main effects stat. sig. or not stat. sig. if interaction is
-- SQL: for the SQL query w/o gg, why can't you space?
+
  
 
 
