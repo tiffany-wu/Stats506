@@ -110,7 +110,7 @@ stargazer(proportion_wear_glasses_matrix,
           type = "html",
           summary = FALSE,
           title = "Proportion of Glasses Wearers by Age Group",
-          digits = 3,
+          digits = 2,
           font.size = "large")
 
 ```
