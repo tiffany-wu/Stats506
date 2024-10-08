@@ -247,7 +247,9 @@ table(as.numeric(regmatches(bdrmlist, matches)))
 
 
 
-
+# Q's
+- Quiz 3
+- For switch function-- why use sapply and not a different apply function? How do I pick?
 
 
 

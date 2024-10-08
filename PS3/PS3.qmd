@@ -42,6 +42,7 @@ merged_data <- merge(vix, demo, by = "SEQN")
 
 # Check the total sample size
 nrow(merged_data) # Should be 6,980
+
 ```
 
 ### b. Without fitting any models, estimate the proportion of respondents within each 10-year age bracket (e.g. 0-9, 10-19, 20-29, etc) who wear glasses/contact lenses for distance vision. Produce a nice table with the results.
@@ -51,11 +52,10 @@ Based on the codebook documents:
 * RIDAGEYR is age in years, which is what we would want to be able to put respondents in 10-year age brackets. It includes both males and females 12-150 years, but 85 years is the oldest.
 * VIQ220 is the question for: Glasses/contact lenses for distance vision? 1 is yes, 2 is no, 9 is don't know, NA is missing. For coding who wears glasses/contact lenses, we code 1 as yes and 2 and 9 as "no" (since not knowing means you might not wear glasses/contact lenses).
 
-
 ```{r}
 # Create age groups
 age_groups <- merged_data %>%
-  select(id = SEQN, 
+  dplyr::select(id = SEQN, 
          age = RIDAGEYR,
          wears_glasses = VIQ220) %>%
   mutate(age_group = case_when(
@@ -111,7 +111,6 @@ stargazer(proportion_wear_glasses_matrix,
           title = "Proportion of Glasses Wearers by Age Group",
           digits = 2)
 
-
 ```
 
 
@@ -132,7 +131,7 @@ This relationship remains positive and statistically significant after adding th
 ```{r}
 # Make overall df for logistic regressions without taking out age group NAs
 log_reg_df <- merged_data %>%
-  select(id = SEQN, 
+  dplyr::select(id = SEQN, 
          age = RIDAGEYR,
          wears_glasses = VIQ220,
          gender = RIAGENDR,
@@ -140,6 +139,7 @@ log_reg_df <- merged_data %>%
          poverty_income_ratio = INDFMPIR
          ) %>%
   mutate(wears_glasses = ifelse(wears_glasses == 1, 1, 0)) %>%
+  mutate(gender = ifelse(gender == 1, "male", "female")) %>% # coding gender value
   mutate(age_group = case_when(
     age >= 0 & age < 10 ~ "0-9",
     age >= 10 & age < 20 ~ "10-19",
@@ -180,7 +180,7 @@ summary(model3)
 
 Below we have a table of the above information, using the stargazer library.
 
-The pseudo-R2 suggests that the models have small explanatory power, and including more predictors slightly improves the fit. The AIC decreases as more predictors are added, suggesting that Model 3 provides the best fit among the three. We see that the main findings are pretty consistent across all 3 models. The odds ratio for age is around 1.02 for all the models and statistically significant, meaning that for each additional year of age, the odds of wearing glasses increase by 2%, holding all else constant. As people get older, they are slightly more likely to wear glasses. All the race variables are also positive and statistically significant, meaning that compared to Mexican Americans (the reference group), people of other races are higher odds of wearing glasses. Females have statistically significantly higher odds (around 65 to 67% higher odds) of wearing glasses/contact lenses compared to males. Lastly, the poverty income ratio (PIR) odds ratio is also positive and statistically significant, meaning that the higher the PIR the greater the odds are of wearing glasses (a one unit increase in PIR increases the odds by about 12%, holding all else constant).
+The pseudo-R2 suggests that the models have small explanatory power, and including more predictors slightly improves the fit. The AIC decreases as more predictors are added, suggesting that Model 3 provides the best fit among the three. We see that the main findings are pretty consistent across all 3 models. The odds ratio for age is around 1.02 for all the models and statistically significant, meaning that for each additional year of age, the odds of wearing glasses increase by 2%, holding all else constant. As people get older, they are slightly more likely to wear glasses. All the race variables are also positive and statistically significant, meaning that compared to Mexican Americans (the reference group), people of other races are higher odds of wearing glasses. Males have statistically significantly lower odds (around 40% lower odds) of wearing glasses/contact lenses compared to females. Lastly, the poverty income ratio (PIR) odds ratio is also positive and statistically significant, meaning that the higher the PIR the greater the odds are of wearing glasses (a one unit increase in PIR increases the odds by about 12%, holding all else constant).
 
 ```{r}
 # Using stargazer to create table--stargazer needs psc1 for pseudo_R2 according to ChatGPT. Also tried keep.stat, but it doesn't work, so we need to manually add this.
@@ -194,62 +194,35 @@ pseudo_r2_model3 <- pscl::pR2(model3)["McFadden"]
 stargazer(model1, model2, model3,
           type = "text", # to view in RStudio-- comment out when actually rendering
        #   type = "html",
-          digits = 2,
+          digits = 3,
           apply.coef = exp, # Exponentiate coefs to get odds ratios
           keep.stat = c("rsq", "adj.rsq", "ll", "aic", "n"),
           add.lines = list(
             c("Pseudo R²", round(pseudo_r2_model1, 3), round(pseudo_r2_model2, 3), round(pseudo_r2_model3, 3))
           ),
           title = "Logistic Regression Models Predicting Glasses Use",
-          covariate.labels = c("Age", "Other Hispanic", "Non-Hispanic White", "Non-Hispanic Black", "Non-Hispanic Other or Multiracial", "Female", "Poverty Income Ratio"),
+          covariate.labels = c("Age", "Other Hispanic", "Non-Hispanic White", "Non-Hispanic Black", "Non-Hispanic Other or Multiracial", "Male", "Poverty Income Ratio"),
           dep.var.labels = "Wears Glasses (Odds Ratio)")
 ```
 
-
 ### d. From the third model from the previous part, test whether the odds of men and women being wears of glasses/contact lenses for distance vision differs. Test whether the proportion of wearers of glasses/contact lenses for distance vision differs between men and women. Include the results of the each test and their interpretation.
 
+We use the emmeans library to test whether the odds of mean and women for wearing glasses/contact lenses differs. First, we do `pairs(emmeans(model3, ~gender))` to test the difference in log-odds. We see the estimate is 0.515 and statistically significant, which means that the odds are statistically significantly different between men and women. This matches our coefficient from model3 above (although it is flipped since this contrast is female-male instead of male-female). Both interpretations are consistent though-- Males have statistically significantly lower odds of wearing glasses/contact lenses compared to females. Said differently, females have statistically significantly higher odds of wearing glasses/contact lenses compared to males.
 
-Can't we just look at the coefficient in model 3? Do we run different models? What's the difference between odds and proportion?
+We can also use the emmeans library to test the proportion differences, using `pairs(emmeans(model3, ~gender, type = "response")).` The odds ratio for female/male is 1.67 and statistically significant, which means that the odds of females wearing glasses/contact lenses are 67% higher than the odds for males. Inverting the odds ratio (1/1.67) aligns with the earlier results from the above `stargazer` table showing that males have around 40% lower odds of wearing glasses compared to females -- both odds ratios are the same, just the base comparison group for interpretation changed.
 
-*QUESTION*
-# Q. MULTIPLE TESTS? WHY CAN'T WE JUST LOOK AT THE COEF IN MODEL 3? CHI SQUARE TEST OF IND FOR PROPORTION?
-
-ChatGPT said: linfct = mcp(gender = "Tukey"): This tells glht() to conduct a Tukey-style post-hoc comparison on the gender variable. Since we are comparing gender levels (e.g., male vs. female), this approach is appropriate for testing whether the effect of gender on wearing glasses is statistically significant.
-
-Interpretation: Estimate (0.29148): This is the difference in log-odds between men and women, where a positive value indicates higher log-odds of wearing glasses for men compared to women.
-Conclusion: Men are significantly more likely to wear glasses than women, with a log-odds difference of 0.29148, and this difference is statistically significant at the 5% level.
-
-For log-odds diff:
 ```{r}
-# General linear hypothesis testing
-library(multcomp)
+library(emmeans)
 
-# Use glht to test the gender coefficient in model3
-gender_test <- glht(model3, linfct = mcp(gender = "Tukey"))
+# Are the log-odds stat. sig?
+pairs(emmeans(model3, ~gender))
 
-# proportion = predicted value for logistic regression-- look back at the notes!
-gender_test_prop <- glht(model3, "gender2 - gender1 = 0")
+# Are the proportions stat. sig?
+pairs(emmeans(model3, ~gender, type = "response")) # type = "response" gets you odds ratio
 
-# Summary of the test
-summary(gender_test_prop)
-```
+# Compare with stargazer odds ratio output
+1/1.67 # Should give us around 0.597 to match the stargazer table in the previous question. It does.
 
-For proportion diff:
-ChatGPT: To test whether the proportions of glasses wearers differ between men and women, you need to use a two-proportion test. A common method to perform this test is using a Chi-square test of independence or a z-test for proportions. In R, this is often done with the prop.test() function or the chisq.test() function.
-
-
-The Chi-square test works to test the association between categorical variables by comparing the observed frequencies in a contingency table to the expected frequencies that would occur if the variables were independent. It helps answer the question: "Is there a statistically significant association between two categorical variables?"
-The Chi-square test compares proportions by evaluating how the observed counts in each category differ from the expected counts if there was no association between the variables. Essentially, it determines if the distribution of one categorical variable (e.g., glasses use) is different between levels of another categorical variable (e.g., gender).
-```{r}
-# Contingency table
-# Gender = 2 is FEMALE
-gender_glasses_table <- table(log_reg_df$gender, log_reg_df$wears_glasses)
-print(gender_glasses_table)
-
-# Perform a chi-square test
-# If the p-value is less than 0.05, you can conclude that there is a statistically significant difference in the proportion of glasses wearers between men and women.
-chisq_test_result <- chisq.test(gender_glasses_table)
-print(chisq_test_result)
 ```
 
 ## Problem 2 - Sakila
@@ -425,6 +398,7 @@ nrow(com_emails) / nrow(us_500_2)
 * [^a-zA-Z0-9@.] matches any character that is not a letter, digit, @, or ., which indicates a non-alphanumeric character.
 
 ```{r}
+# Get rid of alphabet, numbers, @, and . in the email column
 us_500_3 <- us_500 %>%
   mutate(has_special_char = str_detect(email, "[^a-zA-Z0-9@.]"))
 
@@ -446,6 +420,7 @@ The top 5 most common area codes are: 973, 212, 215, 410, and 201.
 us_500_phone <- us_500 %>%
   mutate(area_code = str_extract(phone1, "\\d{3}"))
 
+# Count how many of each area code and sort
 us_500_phone %>%
   count(area_code, sort = TRUE) %>%
   slice_head(n = 5)
