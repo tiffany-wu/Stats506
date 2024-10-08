@@ -390,7 +390,9 @@ nrow(com_emails) / nrow(us_500_2)
 
 ### b. What proportion of email addresses have at least one non alphanumeric character in them? (Excluding the required “@” and “.” found in every email address.)
 
-24.7% of the email addresses have at least 1 non alphanumeric character. To do this, we used str_detect(email, "[^a-zA-Z0-9@.]")) to identify the non alphanumeric characters, excluding "@" and ".":
+24.8% of the email addresses have at least 1 non alphanumeric character. 
+
+To do this, we used str_detect(email, "[^a-zA-Z0-9@.]")) to identify the non alphanumeric characters, excluding "@" and ".":
 
 * [^...] is a negated character class that matches any character not listed within the brackets.
 * a-zA-Z0-9 matches letters (both upper and lower case) and digits.
@@ -452,7 +454,7 @@ ggplot(apt_nums, aes(x = log_apartment_number)) +
 
 According ChatGPT, Benford's Law refers to the phenomenon that, in many naturally occurring datasets, the leading digit 1 appears about 30% of the time, and the probability decreases for larger digits. Benford's Law is also known as the first-digit law. In other words, the leading digit is more likely to be a smaller number than a bigger one.
 
-We generate the expected Benford's Law proportions using the equation given to us by ChatGPT and compare it below with the frequency of leading digits in our us_500 dataset. In the us_500 dataset, all leading digits have similar frequences of appearing, which means that the aparment numbers *would not pass* as real data according to Benford's Law.
+We generate the expected Benford's Law proportions using the equation given to us by ChatGPT and compare it below with the frequency of leading digits in our us_500 dataset. In the us_500 dataset, all leading digits have similar frequences of appearing, which means that the aparment numbers **would not pass** as real data according to Benford's Law.
 
 ```{r}
 # Extract the leading digit from the apartment numbers
