@@ -75,7 +75,7 @@ age_groups <- merged_data %>%
   mutate(wears_glasses = as.factor(wears_glasses))
 
 # Check to see that everyone is grouped
-psych::describe(age_groups) 
+# psych::describe(age_groups) # Comment out to make final output cleaner
 
 # Convert wears_glasses variable into a binary outcome
 # 1 = wears glasses, 2 = doesn't wear
@@ -90,7 +90,7 @@ proportion_wear_glasses <- age_groups_bin %>%
             total = sum(!is.na(wears_glasses)))  # Count of respondents in each group, check that it sums to 6547
 
 # Display the result
-print(proportion_wear_glasses)
+# print(proportion_wear_glasses) # Comment out for final output
 
 # Rename columns in the proportion_wear_glasses data frame for stargazer table
 proportion_wear_glasses_renamed <- proportion_wear_glasses %>%
@@ -110,7 +110,8 @@ stargazer(proportion_wear_glasses_matrix,
           type = "html",
           summary = FALSE,
           title = "Proportion of Glasses Wearers by Age Group",
-          digits = 2)
+          digits = 3,
+          column.sep.width = "1pt")
 
 ```
 
