@@ -95,10 +95,10 @@ proportion_wear_glasses <- age_groups_bin %>%
 # Rename columns in the proportion_wear_glasses data frame for stargazer table
 proportion_wear_glasses_renamed <- proportion_wear_glasses %>%
   rename(
-    "Age Group" = age_group,
-    "Proportion Wearing Glasses" = proportion_wear_glasses,
-    "Number of Glass Wearers" = num_glasses,
-    "Total Count" = total
+    "Age group" = age_group,
+    "Proportion wearing glasses" = proportion_wear_glasses,
+    "# Glass wearers" = num_glasses,
+    "Total count" = total
   )
 
 # Convert the renamed data frame to a matrix to get rid of numbers on LHS (Source: ChatGPT)
@@ -111,7 +111,7 @@ stargazer(proportion_wear_glasses_matrix,
           summary = FALSE,
           title = "Proportion of Glasses Wearers by Age Group",
           digits = 3,
-          column.sep.width = "1pt")
+          font.size = "large")
 
 ```
 

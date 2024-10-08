@@ -3220,10 +3220,10 @@ Please cite as: </code></pre>
 <span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Rename columns in the proportion_wear_glasses data frame for stargazer table</span></span>
 <span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>proportion_wear_glasses_renamed <span class="ot">&lt;-</span> proportion_wear_glasses <span class="sc">%&gt;%</span></span>
 <span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
-<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Age Group&quot;</span> <span class="ot">=</span> age_group,</span>
-<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Proportion Wearing Glasses&quot;</span> <span class="ot">=</span> proportion_wear_glasses,</span>
-<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Number of Glass Wearers&quot;</span> <span class="ot">=</span> num_glasses,</span>
-<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Total Count&quot;</span> <span class="ot">=</span> total</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Age group&quot;</span> <span class="ot">=</span> age_group,</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Proportion wearing glasses&quot;</span> <span class="ot">=</span> proportion_wear_glasses,</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;# Glass wearers&quot;</span> <span class="ot">=</span> num_glasses,</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Total count&quot;</span> <span class="ot">=</span> total</span>
 <span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the renamed data frame to a matrix to get rid of numbers on LHS (Source: ChatGPT)</span></span>
@@ -3236,7 +3236,7 @@ Please cite as: </code></pre>
 <span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>          <span class="at">summary =</span> <span class="cn">FALSE</span>,</span>
 <span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">&quot;Proportion of Glasses Wearers by Age Group&quot;</span>,</span>
 <span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a>          <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a>          <span class="at">column.sep.width =</span> <span class="st">&quot;1pt&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a>          <span class="at">font.size =</span> <span class="st">&quot;large&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <table style="text-align:center">
 <caption>
@@ -3248,16 +3248,16 @@ Please cite as: </code></pre>
 </tr>
 <tr>
 <td style="text-align:left">
-Age Group
+Age group
 </td>
 <td>
-Proportion Wearing Glasses
+Proportion wearing glasses
 </td>
 <td>
-Number of Glass Wearers
+# Glass wearers
 </td>
 <td>
-Total Count
+Total count
 </td>
 </tr>
 <tr>
