@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="quarto-1.4.555" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+<meta name="author" content="Tiffany Wu" />
+
+<title>Problem Set 3</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<!-- htmldependencies:E3FAD763 -->
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Problem Set 3</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Tiffany Wu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="github-repo-link-to-problem-set-3" class="level2">
+<h2>Github Repo Link to Problem Set 3:</h2>
+<p><a href="https://github.com/tiffany-wu/Stats506/tree/main/PS3">https://github.com/tiffany-wu/Stats506/tree/main/PS3</a></p>
+</section>
+<section id="problem-1---vision" class="level2">
+<h2>Problem 1 - Vision</h2>
+<p>This problem will require you to learn things we have not covered. Use the R help, or online resources, to figure out the appropriate command(s). Use citation as necessary.</p>
+<p>For the “nice tables”, use a package such as kable or stargazer (or find another package) to generate HTML/LaTeX tables for inclusion. The results should be clearly labeled, rounded appropriately, and easily readable.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load necessary libraries</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stargazer)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Please cite as: </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code> Hlavac, Marek (2022). stargazer: Well-Formatted Regression and Summary Statistics Tables.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code> R package version 5.2.3. https://CRAN.R-project.org/package=stargazer </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gtsummary)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter()     masks stats::filter()
+✖ dplyr::group_rows() masks kableExtra::group_rows()
+✖ dplyr::lag()        masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(haven) <span class="co"># to read in .XPT files</span></span></code></pre></div>
+</details>
+</div>
+<section id="a.-download-the-file-vix_d-from-this-location-and-determine-how-to-read-it-into-r.-then-download-the-file-demo_d-from-this-location.-note-that-each-page-contains-a-link-to-a-documentation-file-for-that-data-set.-merge-the-two-files-to-create-a-single-data.frame-using-the-seqn-variable-for-merging.-keep-only-records-which-matched.-print-out-your-total-sample-size-showing-that-it-is-now-6980." class="level3">
+<h3>a. Download the file VIX_D from this location, and determine how to read it into R. Then download the file DEMO_D from this location. Note that each page contains a link to a documentation file for that data set. Merge the two files to create a single data.frame, using the SEQN variable for merging. Keep only records which matched. Print out your total sample size, showing that it is now 6,980.</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the .XPT files -- these are SAS transport files</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>vix <span class="ot">&lt;-</span> <span class="fu">read_xpt</span>(<span class="st">&quot;VIX_D.xpt&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>demo <span class="ot">&lt;-</span> <span class="fu">read_xpt</span>(<span class="st">&quot;DEMO_D.xpt&quot;</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge, using SEQN as the key</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>merged_data <span class="ot">&lt;-</span> <span class="fu">merge</span>(vix, demo, <span class="at">by =</span> <span class="st">&quot;SEQN&quot;</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check the total sample size</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged_data) <span class="co"># Should be 6,980</span></span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 6980</code></pre>
+</div>
+</div>
+</section>
+<section id="b.-without-fitting-any-models-estimate-the-proportion-of-respondents-within-each-10-year-age-bracket-e.g.-0-9-10-19-20-29-etc-who-wear-glassescontact-lenses-for-distance-vision.-produce-a-nice-table-with-the-results." class="level3">
+<h3>b. Without fitting any models, estimate the proportion of respondents within each 10-year age bracket (e.g. 0-9, 10-19, 20-29, etc) who wear glasses/contact lenses for distance vision. Produce a nice table with the results.</h3>
+<p>Based on the codebook documents:</p>
+<ul>
+<li>RIDAGEYR is age in years, which is what we would want to be able to put respondents in 10-year age brackets. It includes both males and females 12-150 years, but 85 years is the oldest.</li>
+<li>VIQ220 is the question for: Glasses/contact lenses for distance vision? 1 is yes, 2 is no, 9 is don’t know, NA is missing. For coding who wears glasses/contact lenses, we code 1 as yes and 2 and 9 as “no” (since not knowing means you might not wear glasses/contact lenses).</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create age groups</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>age_groups <span class="ot">&lt;-</span> merged_data <span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">id =</span> SEQN, </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">age =</span> RIDAGEYR,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">wears_glasses =</span> VIQ220) <span class="sc">%&gt;%</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">age_group =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">0</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">10</span> <span class="sc">~</span> <span class="st">&quot;0-9&quot;</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">10</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">20</span> <span class="sc">~</span> <span class="st">&quot;10-19&quot;</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">~</span> <span class="st">&quot;20-29&quot;</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">30</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">40</span> <span class="sc">~</span> <span class="st">&quot;30-39&quot;</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">40</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="st">&quot;40-49&quot;</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">50</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">60</span> <span class="sc">~</span> <span class="st">&quot;50-59&quot;</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">60</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">70</span> <span class="sc">~</span> <span class="st">&quot;60-69&quot;</span>,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">70</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">80</span> <span class="sc">~</span> <span class="st">&quot;70-79&quot;</span>,</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">80</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">90</span> <span class="sc">~</span> <span class="st">&quot;80-89&quot;</span>,</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span>  <span class="co"># For ages outside the specified range</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">%&gt;%</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(wears_glasses) <span class="sc">%&gt;%</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wears_glasses =</span> <span class="fu">as.factor</span>(wears_glasses))</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Check to see that everyone is grouped</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>psych<span class="sc">::</span><span class="fu">describe</span>(age_groups) </span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>               vars    n     mean      sd median  trimmed     mad   min   max
+id                1 6547 36298.44 2975.24  36291 36299.72 3804.35 31129 41474
+age               2 6547    37.81   21.81     33    35.81   25.20    12    85
+wears_glasses*    3 6547     1.58    0.49      2     1.60    0.00     1     3
+age_group*        4 6547     3.32    2.23      3     3.09    2.97     1     8
+               range  skew kurtosis    se
+id             10345  0.00    -1.19 36.77
+age               73  0.58    -0.92  0.27
+wears_glasses*     2 -0.31    -1.88  0.01
+age_group*         7  0.57    -0.93  0.03</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert wears_glasses variable into a binary outcome</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 1 = wears glasses, 2 = doesn&#39;t wear</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>age_groups_bin <span class="ot">&lt;-</span> age_groups <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wears_glasses =</span> <span class="fu">ifelse</span>(wears_glasses <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize the proportion of glasses wearers by age group</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>proportion_wear_glasses <span class="ot">&lt;-</span> age_groups_bin <span class="sc">%&gt;%</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(age_group) <span class="sc">%&gt;%</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">proportion_wear_glasses =</span> <span class="fu">round</span>(<span class="fu">mean</span>(wears_glasses, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="dv">2</span>),</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">num_glasses =</span> <span class="fu">sum</span>(wears_glasses),</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">total =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(wears_glasses)))  <span class="co"># Count of respondents in each group, check that it sums to 6547</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the result</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(proportion_wear_glasses)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 4
+  age_group proportion_wear_glasses num_glasses total
+  &lt;chr&gt;                       &lt;dbl&gt;       &lt;dbl&gt; &lt;int&gt;
+1 10-19                        0.32         670  2088
+2 20-29                        0.33         306   939
+3 30-39                        0.36         269   750
+4 40-49                        0.37         286   773
+5 50-59                        0.55         335   609
+6 60-69                        0.62         392   630
+7 70-79                        0.67         299   447
+8 80-89                        0.67         208   311</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Rename columns in the proportion_wear_glasses data frame for stargazer table</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>proportion_wear_glasses_renamed <span class="ot">&lt;-</span> proportion_wear_glasses <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Age Group&quot;</span> <span class="ot">=</span> age_group,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Proportion Wearing Glasses&quot;</span> <span class="ot">=</span> proportion_wear_glasses,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Number of Glass Wearers&quot;</span> <span class="ot">=</span> num_glasses,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Total Count&quot;</span> <span class="ot">=</span> total</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the renamed data frame to a matrix to get rid of numbers on LHS (Source: ChatGPT)</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>proportion_wear_glasses_matrix <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(proportion_wear_glasses_renamed)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a pretty table using stargazer</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(proportion_wear_glasses_matrix, </span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>       <span class="co">#   type = &quot;text&quot;, Switch to HTML when render</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>          <span class="at">type =</span> <span class="st">&quot;html&quot;</span>,</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>          <span class="at">summary =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">&quot;Proportion of Glasses Wearers by Age Group&quot;</span>,</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>          <span class="at">digits =</span> <span class="dv">2</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+&lt;table style=&quot;text-align:center&quot;&gt;&lt;caption&gt;&lt;strong&gt;Proportion of Glasses Wearers by Age Group&lt;/strong&gt;&lt;/caption&gt;
+&lt;tr&gt;&lt;td colspan=&quot;4&quot; style=&quot;border-bottom: 1px solid black&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;Age Group&lt;/td&gt;&lt;td&gt;Proportion Wearing Glasses&lt;/td&gt;&lt;td&gt;Number of Glass Wearers&lt;/td&gt;&lt;td&gt;Total Count&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td colspan=&quot;4&quot; style=&quot;border-bottom: 1px solid black&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;10-19&lt;/td&gt;&lt;td&gt;0.32&lt;/td&gt;&lt;td&gt;670&lt;/td&gt;&lt;td&gt;2088&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;20-29&lt;/td&gt;&lt;td&gt;0.33&lt;/td&gt;&lt;td&gt;306&lt;/td&gt;&lt;td&gt;939&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;30-39&lt;/td&gt;&lt;td&gt;0.36&lt;/td&gt;&lt;td&gt;269&lt;/td&gt;&lt;td&gt;750&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;40-49&lt;/td&gt;&lt;td&gt;0.37&lt;/td&gt;&lt;td&gt;286&lt;/td&gt;&lt;td&gt;773&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;50-59&lt;/td&gt;&lt;td&gt;0.55&lt;/td&gt;&lt;td&gt;335&lt;/td&gt;&lt;td&gt;609&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;60-69&lt;/td&gt;&lt;td&gt;0.62&lt;/td&gt;&lt;td&gt;392&lt;/td&gt;&lt;td&gt;630&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;70-79&lt;/td&gt;&lt;td&gt;0.67&lt;/td&gt;&lt;td&gt;299&lt;/td&gt;&lt;td&gt;447&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align:left&quot;&gt;80-89&lt;/td&gt;&lt;td&gt;0.67&lt;/td&gt;&lt;td&gt;208&lt;/td&gt;&lt;td&gt;311&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td colspan=&quot;4&quot; style=&quot;border-bottom: 1px solid black&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="c.-fit-three-logistic-regression-models-predicting-whether-a-respondent-wears-glassescontact-lenses-for-distance-vision.-predictors" class="level3">
+<h3>c. Fit three logistic regression models predicting whether a respondent wears glasses/contact lenses for distance vision. Predictors:</h3>
+<section id="age" class="level4">
+<h4>1. age</h4>
+<p>For this regression, we see that a one year increase in age is positively associated (and statistically significant) with the likelihood that the respondent wears glasses/contact lenses.</p>
+</section>
+<section id="age-race-gender" class="level4">
+<h4>2. age, race, gender</h4>
+<p>Even after controlling for race and gender, we see that the relationship between age and wearing glasses/contact lenses is still positive and statistically significant.</p>
+</section>
+<section id="age-race-gender-poverty-income-ratio" class="level4">
+<h4>3. age, race, gender, Poverty Income ratio</h4>
+<p>This relationship remains positive and statistically significant after adding the poverty income ratio as a control variable.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Make overall df for logistic regressions without taking out age group NAs</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>log_reg_df <span class="ot">&lt;-</span> merged_data <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">id =</span> SEQN, </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">age =</span> RIDAGEYR,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">wears_glasses =</span> VIQ220,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">gender =</span> RIAGENDR,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">race =</span> RIDRETH1,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">poverty_income_ratio =</span> INDFMPIR</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wears_glasses =</span> <span class="fu">ifelse</span>(wears_glasses <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">gender =</span> <span class="fu">ifelse</span>(gender <span class="sc">==</span> <span class="dv">1</span>, <span class="st">&quot;male&quot;</span>, <span class="st">&quot;female&quot;</span>)) <span class="sc">%&gt;%</span> <span class="co"># coding gender value</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">age_group =</span> <span class="fu">case_when</span>(</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">0</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">10</span> <span class="sc">~</span> <span class="st">&quot;0-9&quot;</span>,</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">10</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">20</span> <span class="sc">~</span> <span class="st">&quot;10-19&quot;</span>,</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">20</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">~</span> <span class="st">&quot;20-29&quot;</span>,</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">30</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">40</span> <span class="sc">~</span> <span class="st">&quot;30-39&quot;</span>,</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">40</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="st">&quot;40-49&quot;</span>,</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">50</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">60</span> <span class="sc">~</span> <span class="st">&quot;50-59&quot;</span>,</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">60</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">70</span> <span class="sc">~</span> <span class="st">&quot;60-69&quot;</span>,</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">70</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">80</span> <span class="sc">~</span> <span class="st">&quot;70-79&quot;</span>,</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    age <span class="sc">&gt;=</span> <span class="dv">85</span> <span class="sc">&amp;</span> age <span class="sc">&lt;</span> <span class="dv">90</span> <span class="sc">~</span> <span class="st">&quot;80-89&quot;</span>,</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span>  <span class="co"># For ages outside the specified range</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">%&gt;%</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">race =</span> <span class="fu">as.factor</span>(race),</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">gender =</span> <span class="fu">as.factor</span>(gender))</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Model 1: age as predictor</span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>model1 <span class="ot">&lt;-</span> <span class="fu">glm</span>(wears_glasses <span class="sc">~</span> age, </span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> log_reg_df, </span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>              <span class="at">family =</span> binomial)</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model1)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = wears_glasses ~ age, family = binomial, data = log_reg_df)
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -1.261893   0.053447  -23.61   &lt;2e-16 ***
+age          0.024684   0.001206   20.48   &lt;2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 8917.4  on 6546  degrees of freedom
+Residual deviance: 8473.7  on 6545  degrees of freedom
+  (433 observations deleted due to missingness)
+AIC: 8477.7
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Model 2: age, race, and gender as predictors</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure that `race` and `gender` variables are in the dataset.</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>model2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(wears_glasses <span class="sc">~</span> age <span class="sc">+</span> race <span class="sc">+</span> gender, </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> log_reg_df, </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">family =</span> binomial)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = wears_glasses ~ age + race + gender, family = binomial, 
+    data = log_reg_df)
+
+Coefficients:
+             Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -1.336493   0.072857 -18.344  &lt; 2e-16 ***
+age          0.022587   0.001262  17.892  &lt; 2e-16 ***
+race2        0.157336   0.164280   0.958 0.338199    
+race3        0.668994   0.070010   9.556  &lt; 2e-16 ***
+race4        0.262837   0.076574   3.432 0.000598 ***
+race5        0.652075   0.135403   4.816 1.47e-06 ***
+gendermale  -0.501051   0.053005  -9.453  &lt; 2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 8917.4  on 6546  degrees of freedom
+Residual deviance: 8275.9  on 6540  degrees of freedom
+  (433 observations deleted due to missingness)
+AIC: 8289.9
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit Model 3: age, race, gender, and poverty income ratio as predictors</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure `poverty_income_ratio` is included in the dataset.</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>model3 <span class="ot">&lt;-</span> <span class="fu">glm</span>(wears_glasses <span class="sc">~</span> age <span class="sc">+</span> race <span class="sc">+</span> gender <span class="sc">+</span> poverty_income_ratio, </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> log_reg_df, </span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">family =</span> binomial)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model3)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = wears_glasses ~ age + race + gender + poverty_income_ratio, 
+    family = binomial, data = log_reg_df)
+
+Coefficients:
+                      Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)          -1.501941   0.082161 -18.280  &lt; 2e-16 ***
+age                   0.022202   0.001295  17.146  &lt; 2e-16 ***
+race2                 0.117483   0.168257   0.698 0.485030    
+race3                 0.502239   0.075116   6.686 2.29e-11 ***
+race4                 0.208817   0.079205   2.636 0.008379 ** 
+race5                 0.534345   0.140139   3.813 0.000137 ***
+gendermale           -0.515109   0.054298  -9.487  &lt; 2e-16 ***
+poverty_income_ratio  0.113427   0.017699   6.409 1.47e-10 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 8521.3  on 6248  degrees of freedom
+Residual deviance: 7896.1  on 6241  degrees of freedom
+  (731 observations deleted due to missingness)
+AIC: 7912.1
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="produce-a-table-presenting-the-estimated-odds-ratios-for-the-coefficients-in-each-model-along-with-the-sample-size-for-the-model-the-pseudo-r2-and-aic-values." class="level3">
+<h3>Produce a table presenting the estimated odds ratios for the coefficients in each model, along with the sample size for the model, the pseudo-R2, and AIC values.</h3>
+<p>Below we have a table of the above information, using the stargazer library.</p>
+<p>The pseudo-R2 suggests that the models have small explanatory power, and including more predictors slightly improves the fit. The AIC decreases as more predictors are added, suggesting that Model 3 provides the best fit among the three. We see that the main findings are pretty consistent across all 3 models. The odds ratio for age is around 1.02 for all the models and statistically significant, meaning that for each additional year of age, the odds of wearing glasses increase by 2%, holding all else constant. As people get older, they are slightly more likely to wear glasses. All the race variables are also positive and statistically significant, meaning that compared to Mexican Americans (the reference group), people of other races are higher odds of wearing glasses. Males have statistically significantly lower odds (around 40% lower odds) of wearing glasses/contact lenses compared to females. Lastly, the poverty income ratio (PIR) odds ratio is also positive and statistically significant, meaning that the higher the PIR the greater the odds are of wearing glasses (a one unit increase in PIR increases the odds by about 12%, holding all else constant).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using stargazer to create table--stargazer needs psc1 for pseudo_R2 according to ChatGPT. Also tried keep.stat, but it doesn&#39;t work, so we need to manually add this.</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pscl)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Classes and Methods for R originally developed in the
+Political Science Computational Laboratory
+Department of Political Science
+Stanford University (2002-2015),
+by and under the direction of Simon Jackman.
+hurdle and zeroinfl functions by Achim Zeileis.</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate pseudo-R² for each model</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>pseudo_r2_model1 <span class="ot">&lt;-</span> pscl<span class="sc">::</span><span class="fu">pR2</span>(model1)[<span class="st">&quot;McFadden&quot;</span>]</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>fitting null model for pseudo-r2</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>pseudo_r2_model2 <span class="ot">&lt;-</span> pscl<span class="sc">::</span><span class="fu">pR2</span>(model2)[<span class="st">&quot;McFadden&quot;</span>]</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>fitting null model for pseudo-r2</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>pseudo_r2_model3 <span class="ot">&lt;-</span> pscl<span class="sc">::</span><span class="fu">pR2</span>(model3)[<span class="st">&quot;McFadden&quot;</span>]</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>fitting null model for pseudo-r2</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Try first</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(model1, model2, model3,</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">type =</span> <span class="st">&quot;text&quot;</span>, <span class="co"># to view in RStudio-- comment out when actually rendering</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>       <span class="co">#   type = &quot;html&quot;,</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">apply.coef =</span> exp, <span class="co"># Exponentiate coefs to get odds ratios</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">keep.stat =</span> <span class="fu">c</span>(<span class="st">&quot;rsq&quot;</span>, <span class="st">&quot;adj.rsq&quot;</span>, <span class="st">&quot;ll&quot;</span>, <span class="st">&quot;aic&quot;</span>, <span class="st">&quot;n&quot;</span>),</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">add.lines =</span> <span class="fu">list</span>(</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>            <span class="fu">c</span>(<span class="st">&quot;Pseudo R²&quot;</span>, <span class="fu">round</span>(pseudo_r2_model1, <span class="dv">3</span>), <span class="fu">round</span>(pseudo_r2_model2, <span class="dv">3</span>), <span class="fu">round</span>(pseudo_r2_model3, <span class="dv">3</span>))</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>          ),</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">&quot;Logistic Regression Models Predicting Glasses Use&quot;</span>,</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">covariate.labels =</span> <span class="fu">c</span>(<span class="st">&quot;Age&quot;</span>, <span class="st">&quot;Other Hispanic&quot;</span>, <span class="st">&quot;Non-Hispanic White&quot;</span>, <span class="st">&quot;Non-Hispanic Black&quot;</span>, <span class="st">&quot;Non-Hispanic Other or Multiracial&quot;</span>, <span class="st">&quot;Male&quot;</span>, <span class="st">&quot;Poverty Income Ratio&quot;</span>),</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">dep.var.labels =</span> <span class="st">&quot;Wears Glasses (Odds Ratio)&quot;</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Logistic Regression Models Predicting Glasses Use
+==================================================================
+                                        Dependent variable:       
+                                  --------------------------------
+                                     Wears Glasses (Odds Ratio)   
+                                     (1)        (2)        (3)    
+------------------------------------------------------------------
+Age                                1.025***   1.023***   1.022*** 
+                                   (0.001)    (0.001)    (0.001)  
+                                                                  
+Other Hispanic                                1.170***   1.125*** 
+                                              (0.164)    (0.168)  
+                                                                  
+Non-Hispanic White                            1.952***   1.652*** 
+                                              (0.070)    (0.075)  
+                                                                  
+Non-Hispanic Black                            1.301***   1.232*** 
+                                              (0.077)    (0.079)  
+                                                                  
+Non-Hispanic Other or Multiracial             1.920***   1.706*** 
+                                              (0.135)    (0.140)  
+                                                                  
+Male                                          0.606***   0.597*** 
+                                              (0.053)    (0.054)  
+                                                                  
+Poverty Income Ratio                                     1.120*** 
+                                                         (0.018)  
+                                                                  
+Constant                           0.283***   0.263***   0.223*** 
+                                   (0.053)    (0.073)    (0.082)  
+                                                                  
+------------------------------------------------------------------
+Pseudo R²                            0.05      0.072      0.073   
+Observations                        6,547      6,547      6,249   
+Log Likelihood                    -4,236.840 -4,137.962 -3,948.039
+Akaike Inf. Crit.                 8,477.679  8,289.925  7,912.077 
+==================================================================
+Note:                                  *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+</div>
+</section>
+<section id="d.-from-the-third-model-from-the-previous-part-test-whether-the-odds-of-men-and-women-being-wears-of-glassescontact-lenses-for-distance-vision-differs.-test-whether-the-proportion-of-wearers-of-glassescontact-lenses-for-distance-vision-differs-between-men-and-women.-include-the-results-of-the-each-test-and-their-interpretation." class="level3">
+<h3>d. From the third model from the previous part, test whether the odds of men and women being wears of glasses/contact lenses for distance vision differs. Test whether the proportion of wearers of glasses/contact lenses for distance vision differs between men and women. Include the results of the each test and their interpretation.</h3>
+<p>We use the emmeans library to test whether the odds of mean and women for wearing glasses/contact lenses differs. First, we do <code>pairs(emmeans(model3, ~gender))</code> to test the difference in log-odds. We see the estimate is 0.515 and statistically significant, which means that the odds are statistically significantly different between men and women. This matches our coefficient from model3 above (although it is flipped since this contrast is female-male instead of male-female). Both interpretations are consistent though– Males have statistically significantly lower odds of wearing glasses/contact lenses compared to females. Said differently, females have statistically significantly higher odds of wearing glasses/contact lenses compared to males.</p>
+<p>We can also use the emmeans library to test the proportion differences, using <code>pairs(emmeans(model3, ~gender, type = "response")).</code> The odds ratio for female/male is 1.67 and statistically significant, which means that the odds of females wearing glasses/contact lenses are 67% higher than the odds for males. Inverting the odds ratio (1/1.67) aligns with the earlier results from the above <code>stargazer</code> table showing that males have around 40% lower odds of wearing glasses compared to females – both odds ratios are the same, just the base comparison group for interpretation changed.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(emmeans)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Welcome to emmeans.
+Caution: You lose important information if you filter this package&#39;s results.
+See &#39;? untidy&#39;</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Are the log-odds stat. sig?</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(<span class="fu">emmeans</span>(model3, <span class="sc">~</span>gender))</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> contrast      estimate     SE  df z.ratio p.value
+ female - male    0.515 0.0543 Inf   9.487  &lt;.0001
+
+Results are averaged over the levels of: race 
+Results are given on the log odds ratio (not the response) scale. </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Are the proportions stat. sig?</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(<span class="fu">emmeans</span>(model3, <span class="sc">~</span>gender, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>)) <span class="co"># type = &quot;response&quot; gets you odds ratio</span></span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> contrast      odds.ratio     SE  df null z.ratio p.value
+ female / male       1.67 0.0909 Inf    1   9.487  &lt;.0001
+
+Results are averaged over the levels of: race 
+Tests are performed on the log odds ratio scale </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare with stargazer odds ratio output</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="sc">/</span><span class="fl">1.67</span> <span class="co"># Should give us around 0.597 to match the stargazer table in the previous question. It does.</span></span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.5988024</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="problem-2---sakila" class="level2">
+<h2>Problem 2 - Sakila</h2>
+<p>Load the “sakila” database discussed in class into SQLite. It can be downloaded from https://github.com/bradleygrant/sakila-sqlite3.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load in necessary libraries</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DBI) <span class="co"># necessary evil. Holds SQL to R, handles backend so they can talk to each other</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RSQLite)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="co"># dbConnect: 2 arguments. What kind of connection/what tool to use? What database (usually it&#39;s a pathway to the server the data is stored on)?</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>sakila <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(<span class="fu">SQLite</span>(), <span class="st">&quot;sakila_master.db&quot;</span>)</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Trick to not type dbGetQuery over and over again</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Not a great function because you&#39;re calling lahman from the global environment, but it&#39;s helpful.</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>gg <span class="ot">&lt;-</span> <span class="cf">function</span>(query){</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dbGetQuery</span>(sakila, query)</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a><span class="co"># What tables are available?</span></span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a><span class="fu">dbListTables</span>(sakila)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] &quot;actor&quot;                  &quot;address&quot;                &quot;category&quot;              
+ [4] &quot;city&quot;                   &quot;country&quot;                &quot;customer&quot;              
+ [7] &quot;customer_list&quot;          &quot;film&quot;                   &quot;film_actor&quot;            
+[10] &quot;film_category&quot;          &quot;film_list&quot;              &quot;film_text&quot;             
+[13] &quot;inventory&quot;              &quot;language&quot;               &quot;payment&quot;               
+[16] &quot;rental&quot;                 &quot;sales_by_film_category&quot; &quot;sales_by_store&quot;        
+[19] &quot;staff&quot;                  &quot;staff_list&quot;             &quot;store&quot;                 </code></pre>
+</div>
+</div>
+<p>For these problems, do not use any of the tables whose names end in _list.</p>
+<section id="a.-what-year-is-the-oldest-movie-from-and-how-many-movies-were-released-in-that-year-answer-this-with-a-single-sql-query." class="level3">
+<h3>a. What year is the oldest movie from, and how many movies were released in that year? Answer this with a single SQL query.</h3>
+<p>The oldest movie is from 2006. 1000 movies were release that year. Every movie in this fake database was released in the same year.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># What variables are inside the &quot;film&quot; table?</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dbListFields</span>(sakila, <span class="st">&quot;film&quot;</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] &quot;film_id&quot;              &quot;title&quot;                &quot;description&quot;         
+ [4] &quot;release_year&quot;         &quot;language_id&quot;          &quot;original_language_id&quot;
+ [7] &quot;rental_duration&quot;      &quot;rental_rate&quot;          &quot;length&quot;              
+[10] &quot;replacement_cost&quot;     &quot;rating&quot;               &quot;special_features&quot;    
+[13] &quot;last_update&quot;         </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># SQL query</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="co">#gg(&quot;SELECT title, release_year # First, make sure what you&#39;re seeing is real</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   FROM film</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   WHERE release_year = (SELECT MIN(release_year) FROM film)&quot;)</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Single SQL Query</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="fu">gg</span>(<span class="st">&quot;SELECT count(title), release_year</span></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="st">   FROM film</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a><span class="st">   GROUP BY release_year&quot;</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  count(title) release_year
+1         1000         2006</code></pre>
+</div>
+</div>
+</section>
+<section id="for-each-of-the-following-questions-solve-them-in-two-ways-first-use-sql-query-or-queries-to-extract-the-appropriate-tables-then-use-regular-r-operations-on-those-data.frames-to-answer-the-question.-second-use-a-single-sql-query-to-answer-the-question." class="level3">
+<h3>For each of the following questions, solve them in two ways: First, use SQL query or queries to extract the appropriate table(s), then use regular R operations on those data.frames to answer the question. Second, use a single SQL query to answer the question.</h3>
+</section>
+<section id="b.-what-genre-of-movie-is-the-least-common-in-the-data-and-how-many-movies-are-of-this-genre" class="level3">
+<h3>b. What genre of movie is the least common in the data, and how many movies are of this genre?</h3>
+<p>The genre with the least common data is Music, which has 51 movies.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract information on film genres</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>film_category_query <span class="ot">&lt;-</span> <span class="st">&quot;</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="st">  SELECT category.name AS genre, COUNT(film.film_id) AS count</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM film</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN film_category ON film.film_id = film_category.film_id</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN category ON film_category.category_id = category.category_id</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="st">  GROUP BY category.name;</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="fu">gg</span>(film_category_query)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>         genre count
+1       Action    64
+2    Animation    66
+3     Children    60
+4     Classics    57
+5       Comedy    58
+6  Documentary    68
+7        Drama    62
+8       Family    69
+9      Foreign    73
+10       Games    61
+11      Horror    56
+12       Music    51
+13         New    63
+14      Sci-Fi    61
+15      Sports    74
+16      Travel    57</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the result as a data.frame</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>film_category_data <span class="ot">&lt;-</span> <span class="fu">gg</span>(film_category_query)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the least common genre and its count using R operations</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>least_common_genre <span class="ot">&lt;-</span> film_category_data[<span class="fu">which.min</span>(film_category_data<span class="sc">$</span>count), ]</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(least_common_genre)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   genre count
+12 Music    51</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>least_common_genre</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   genre count
+12 Music    51</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use SQL to answer the question:</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gg</span>(<span class="st">&quot;SELECT category.name AS genre, COUNT(film.film_id) AS count</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM film</span></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN film_category ON film.film_id = film_category.film_id</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN category ON film_category.category_id = category.category_id</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a><span class="st">  GROUP BY category.name</span></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="st">  ORDER BY count ASC</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="st">  LIMIT 1&quot;</span></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  genre count
+1 Music    51</code></pre>
+</div>
+</div>
+</section>
+<section id="c.-identify-which-country-or-countries-have-exactly-13-customers." class="level3">
+<h3>c. Identify which country or countries have exactly 13 customers.</h3>
+<p>Argentina and Nigeria have exactly 13 customers.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract country and customer count information</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>customer_country_query <span class="ot">&lt;-</span> </span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;SELECT country.country, COUNT(customer.customer_id) AS count</span></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM customer</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN address ON customer.address_id = address.address_id</span></span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN city ON address.city_id = city.city_id</span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN country ON city.country_id = country.country_id</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a><span class="st">  GROUP BY country.country&quot;</span></span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a><span class="fu">gg</span>(customer_country_query)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                  country count
+1                             Afghanistan     1
+2                                 Algeria     3
+3                          American Samoa     1
+4                                  Angola     2
+5                                Anguilla     1
+6                               Argentina    13
+7                                 Armenia     1
+8                                 Austria     3
+9                              Azerbaijan     2
+10                                Bahrain     1
+11                             Bangladesh     3
+12                                Belarus     2
+13                                Bolivia     2
+14                                 Brazil    28
+15                                 Brunei     1
+16                               Bulgaria     2
+17                               Cambodia     2
+18                               Cameroon     2
+19                                 Canada     5
+20                                   Chad     1
+21                                  Chile     3
+22                                  China    53
+23                               Colombia     6
+24  Congo, The Democratic Republic of the     2
+25                         Czech Republic     1
+26                     Dominican Republic     3
+27                                Ecuador     3
+28                                  Egypt     6
+29                                Estonia     1
+30                               Ethiopia     1
+31                          Faroe Islands     1
+32                                Finland     1
+33                                 France     4
+34                          French Guiana     1
+35                       French Polynesia     2
+36                                 Gambia     1
+37                                Germany     7
+38                                 Greece     2
+39                              Greenland     1
+40          Holy See (Vatican City State)     1
+41                              Hong Kong     1
+42                                Hungary     1
+43                                  India    60
+44                              Indonesia    14
+45                                   Iran     8
+46                                   Iraq     1
+47                                 Israel     4
+48                                  Italy     7
+49                                  Japan    31
+50                              Kazakstan     2
+51                                  Kenya     2
+52                                 Kuwait     1
+53                                 Latvia     2
+54                          Liechtenstein     1
+55                              Lithuania     1
+56                             Madagascar     1
+57                                 Malawi     1
+58                               Malaysia     3
+59                                 Mexico    30
+60                                Moldova     1
+61                                Morocco     3
+62                             Mozambique     3
+63                                Myanmar     2
+64                                  Nauru     1
+65                                  Nepal     1
+66                            Netherlands     5
+67                            New Zealand     1
+68                                Nigeria    13
+69                            North Korea     1
+70                                   Oman     2
+71                               Pakistan     5
+72                               Paraguay     3
+73                                   Peru     4
+74                            Philippines    20
+75                                 Poland     8
+76                            Puerto Rico     2
+77                                Romania     2
+78                                 Runion     1
+79                     Russian Federation    28
+80       Saint Vincent and the Grenadines     1
+81                           Saudi Arabia     5
+82                                Senegal     1
+83                               Slovakia     1
+84                           South Africa    11
+85                            South Korea     5
+86                                  Spain     5
+87                              Sri Lanka     1
+88                                  Sudan     2
+89                                 Sweden     1
+90                            Switzerland     3
+91                                 Taiwan    10
+92                               Tanzania     3
+93                               Thailand     3
+94                                  Tonga     1
+95                                Tunisia     1
+96                                 Turkey    15
+97                           Turkmenistan     1
+98                                 Tuvalu     1
+99                                Ukraine     6
+100                  United Arab Emirates     3
+101                        United Kingdom     9
+102                         United States    36
+103                             Venezuela     7
+104                               Vietnam     6
+105                  Virgin Islands, U.S.     1
+106                                 Yemen     4
+107                            Yugoslavia     2
+108                                Zambia     1</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the result as a data.frame</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>customer_country_data <span class="ot">&lt;-</span> <span class="fu">gg</span>(customer_country_query)</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Find countries with exactly 13 customers using R operations</span></span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>countries_with_13_customers <span class="ot">&lt;-</span> customer_country_data[customer_country_data<span class="sc">$</span>count <span class="sc">==</span> <span class="dv">13</span>, ]</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(countries_with_13_customers)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>     country count
+6  Argentina    13
+68   Nigeria    13</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use SQL</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gg</span>(<span class="st">&quot;SELECT country.country, COUNT(customer.customer_id) AS count</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM customer</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN address ON customer.address_id = address.address_id</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN city ON address.city_id = city.city_id</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a><span class="st">  JOIN country ON city.country_id = country.country_id</span></span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a><span class="st">  GROUP BY country.country</span></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a><span class="st">  HAVING count = 13&quot;</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    country count
+1 Argentina    13
+2   Nigeria    13</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="problem-3---us-records" class="level2">
+<h2>Problem 3 - US Records</h2>
+<p>Download the “US - 500 Records” data from https://www.briandunning.com/sample-data/ and import it into R. This is entirely fake data - use it to answer the following questions.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in data</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>us_500 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;us-500.csv&quot;</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 500 Columns: 12
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: &quot;,&quot;
+chr (12): first_name, last_name, company_name, address, city, county, state,...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+</div>
+<section id="a.-what-proportion-of-email-addresses-are-hosted-at-a-domain-with-tld-.com-in-the-email-angrycatfreemail.org-freemail.org-is-the-domain-and-.org-is-the-tld-top-level-domain." class="level3">
+<h3>a. What proportion of email addresses are hosted at a domain with TLD “.com”? (in the email, “angrycat@freemail.org”, “freemail.org” is the domain, and “.org” is the TLD (top-level domain).)</h3>
+<p>73.2% of the email addresses are hosted at a domain with TLD “.com”.</p>
+<p>To get this proportion, we used the following regex to first extract the domain and TLD– (?&lt;=@)[^.]+\.(.+), where:</p>
+<ul>
+<li>(?&lt;=@): A positive lookbehind to ensure that we are capturing the part after the ‘@’ symbol.</li>
+<li>[^.]+: Matches any characters until the first period, which represents the domain.</li>
+<li>\.(.+): Captures the TLD part after the dot.</li>
+</ul>
+<p>Then, we used filter(str_detect(tld, “\.com$”)) to filter out only the “.com” TLDs:</p>
+<ul>
+<li>str_detect(): Checks if the TLD ends with .com.</li>
+<li>\.com$: Matches .com at the end of the string.</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load necessary library for string manipulation</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the domain and TLD from email addresses using a regular expression</span></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (?&lt;=@)[^.]+\\.(.+) matches the part of the email after &#39;@&#39; and captures the TLD</span></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>us_500_2 <span class="ot">&lt;-</span> us_500 <span class="sc">%&gt;%</span></span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tld =</span> <span class="fu">str_extract</span>(email, <span class="st">&quot;(?&lt;=@)[^.]+</span><span class="sc">\\</span><span class="st">.(.+)&quot;</span>))  <span class="co"># Extracting the domain and TLD</span></span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out only &quot;.com&quot; TLDs</span></span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>com_emails <span class="ot">&lt;-</span> us_500_2 <span class="sc">%&gt;%</span></span>
+<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(tld, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">.com$&quot;</span>))</span>
+<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the proportion of &quot;.com&quot; email addresses</span></span>
+<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(com_emails) <span class="sc">/</span> <span class="fu">nrow</span>(us_500_2)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.732</code></pre>
+</div>
+</div>
+</section>
+<section id="b.-what-proportion-of-email-addresses-have-at-least-one-non-alphanumeric-character-in-them-excluding-the-required-and-.-found-in-every-email-address." class="level3">
+<h3>b. What proportion of email addresses have at least one non alphanumeric character in them? (Excluding the required “@” and “.” found in every email address.)</h3>
+<p>24.7% of the email addresses have at least 1 non alphanumeric character. To do this, we used str_detect(email, “[^a-zA-Z0-9@.]”)) to identify the non alphanumeric characters, excluding “@” and “.”:</p>
+<ul>
+<li>[^...] is a negated character class that matches any character not listed within the brackets.</li>
+<li>a-zA-Z0-9 matches letters (both upper and lower case) and digits.</li>
+<li><ol class="example" type="1">
+<li>matches the required @ and . characters in email addresses.</li>
+</ol></li>
+<li>[^a-zA-Z0-9@.] matches any character that is not a letter, digit, @, or ., which indicates a non-alphanumeric character.</li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get rid of alphabet, numbers, @, and . in the email column</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>us_500_3 <span class="ot">&lt;-</span> us_500 <span class="sc">%&gt;%</span></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">has_special_char =</span> <span class="fu">str_detect</span>(email, <span class="st">&quot;[^a-zA-Z0-9@.]&quot;</span>))</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out rows where &#39;has_special_char&#39; is TRUE</span></span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>special_char_emails <span class="ot">&lt;-</span> us_500_3 <span class="sc">%&gt;%</span></span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(has_special_char)</span>
+<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the proportion of email addresses with at least one non-alphanumeric character</span></span>
+<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(special_char_emails) <span class="sc">/</span> <span class="fu">nrow</span>(us_500)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.248</code></pre>
+</div>
+</div>
+</section>
+<section id="c.-what-are-the-top-5-most-common-area-codes-amongst-all-phone-numbers-the-area-code-is-the-first-three-digits-of-a-standard-10-digit-telephone-number." class="level3">
+<h3>c. What are the top 5 most common area codes amongst all phone numbers? (The area code is the first three digits of a standard 10-digit telephone number.)</h3>
+<p>The top 5 most common area codes are: 973, 212, 215, 410, and 201.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the area code from the phone numbers</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>us_500_phone <span class="ot">&lt;-</span> us_500 <span class="sc">%&gt;%</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">area_code =</span> <span class="fu">str_extract</span>(phone1, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">d{3}&quot;</span>))</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Count how many of each area code and sort</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>us_500_phone <span class="sc">%&gt;%</span></span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(area_code, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">5</span>)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+  area_code     n
+  &lt;chr&gt;     &lt;int&gt;
+1 973          18
+2 212          14
+3 215          14
+4 410          14
+5 201          12</code></pre>
+</div>
+</div>
+</section>
+<section id="d.-produce-a-histogram-of-the-log-of-the-apartment-numbers-for-all-addresses.-you-may-assume-any-number-at-the-end-of-the-an-address-is-an-apartment-number." class="level3">
+<h3>d. Produce a histogram of the log of the apartment numbers for all addresses. (You may assume any number at the end of the an address is an apartment number.)</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the last number from address</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>apt_nums <span class="ot">&lt;-</span>  us_500 <span class="sc">%&gt;%</span></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">apartment_number =</span> <span class="fu">as.numeric</span>(<span class="fu">str_extract</span>(address, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">d+$&quot;</span>)))  </span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the logarithm of apartment numbers, excluding missing </span></span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>apt_nums <span class="ot">&lt;-</span> apt_nums <span class="sc">%&gt;%</span></span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(apartment_number)) <span class="sc">%&gt;%</span>  <span class="co"># Remove NAs</span></span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">log_apartment_number =</span> <span class="fu">log</span>(apartment_number))</span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-10"><a href="#cb69-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the histogram</span></span>
+<span id="cb69-11"><a href="#cb69-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(apt_nums, <span class="fu">aes</span>(<span class="at">x =</span> log_apartment_number)) <span class="sc">+</span></span>
+<span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="fl">0.5</span>, <span class="at">fill =</span> <span class="st">&quot;skyblue3&quot;</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Histogram of Log of Apartment Numbers&quot;</span>,</span>
+<span id="cb69-14"><a href="#cb69-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Log of Apartment Number&quot;</span>,</span>
+<span id="cb69-15"><a href="#cb69-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Count&quot;</span>) <span class="sc">+</span></span>
+<span id="cb69-16"><a href="#cb69-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="PS3_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="e.-benfords-law-is-an-observation-about-the-distribution-of-the-leading-digit-of-real-numerical-data.-examine-whether-the-apartment-numbers-appear-to-follow-benfords-law.-do-you-think-the-apartment-numbers-would-pass-as-real-data" class="level3">
+<h3>e. Benford’s law is an observation about the distribution of the leading digit of real numerical data. Examine whether the apartment numbers appear to follow Benford’s law. Do you think the apartment numbers would pass as real data?</h3>
+<p>According ChatGPT, Benford’s Law refers to the phenomenon that, in many naturally occurring datasets, the leading digit 1 appears about 30% of the time, and the probability decreases for larger digits. Benford’s Law is also known as the first-digit law. In other words, the leading digit is more likely to be a smaller number than a bigger one.</p>
+<p>We generate the expected Benford’s Law proportions using the equation given to us by ChatGPT and compare it below with the frequency of leading digits in our us_500 dataset. In the us_500 dataset, all leading digits have similar frequences of appearing, which means that the aparment numbers <em>would not pass</em> as real data according to Benford’s Law.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the leading digit from the apartment numbers</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>leading <span class="ot">&lt;-</span> apt_nums <span class="sc">%&gt;%</span></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">leading_digit =</span> <span class="fu">as.numeric</span>(<span class="fu">str_extract</span>(<span class="fu">as.character</span>(apartment_number), <span class="st">&quot;^</span><span class="sc">\\</span><span class="st">d&quot;</span>)))</span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate frequency of each leading digit</span></span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>leading_digit_freq <span class="ot">&lt;-</span> leading <span class="sc">%&gt;%</span></span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(leading_digit) <span class="sc">%&gt;%</span></span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">us_500_proportion =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n))</span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare with Benford&#39;s Law</span></span>
+<span id="cb70-11"><a href="#cb70-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the expected Benford&#39;s Law proportions</span></span>
+<span id="cb70-12"><a href="#cb70-12" aria-hidden="true" tabindex="-1"></a>benford_probs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb70-13"><a href="#cb70-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">leading_digit =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>,</span>
+<span id="cb70-14"><a href="#cb70-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">benford_proportion =</span> <span class="fu">log10</span>((<span class="dv">1</span> <span class="sc">+</span> leading_digit) <span class="sc">/</span> leading_digit)</span>
+<span id="cb70-15"><a href="#cb70-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb70-16"><a href="#cb70-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-17"><a href="#cb70-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge with observed proportions for comparison</span></span>
+<span id="cb70-18"><a href="#cb70-18" aria-hidden="true" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">left_join</span>(leading_digit_freq, benford_probs, <span class="at">by =</span> <span class="st">&quot;leading_digit&quot;</span>)</span>
+<span id="cb70-19"><a href="#cb70-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(comparison)</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 4
+  leading_digit     n us_500_proportion benford_proportion
+          &lt;dbl&gt; &lt;int&gt;             &lt;dbl&gt;              &lt;dbl&gt;
+1             1    15            0.127              0.301 
+2             2    13            0.110              0.176 
+3             3    12            0.102              0.125 
+4             4    12            0.102              0.0969
+5             5    15            0.127              0.0792
+6             6    11            0.0932             0.0669
+7             7    12            0.102              0.0580
+8             8    11            0.0932             0.0512
+9             9    17            0.144              0.0458</code></pre>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id = "quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+</body>
+
+</html>
