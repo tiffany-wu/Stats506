@@ -6,6 +6,7 @@ format:
     code-fold: true
     code-summary: "Show the code"
     embed-resources: true
+output: html_document
 editor: source
 mainfont: Times New Roman
 ---
@@ -52,7 +53,7 @@ Based on the codebook documents:
 * RIDAGEYR is age in years, which is what we would want to be able to put respondents in 10-year age brackets. It includes both males and females 12-150 years, but 85 years is the oldest.
 * VIQ220 is the question for: Glasses/contact lenses for distance vision? 1 is yes, 2 is no, 9 is don't know, NA is missing. For coding who wears glasses/contact lenses, we code 1 as yes and 2 and 9 as "no" (since not knowing means you might not wear glasses/contact lenses).
 
-```{r}
+```{r, results = 'asis'}
 # Create age groups
 age_groups <- merged_data %>%
   dplyr::select(id = SEQN, 
@@ -182,7 +183,7 @@ Below we have a table of the above information, using the stargazer library.
 
 The pseudo-R2 suggests that the models have small explanatory power, and including more predictors slightly improves the fit. The AIC decreases as more predictors are added, suggesting that Model 3 provides the best fit among the three. We see that the main findings are pretty consistent across all 3 models. The odds ratio for age is around 1.02 for all the models and statistically significant, meaning that for each additional year of age, the odds of wearing glasses increase by 2%, holding all else constant. As people get older, they are slightly more likely to wear glasses. All the race variables are also positive and statistically significant, meaning that compared to Mexican Americans (the reference group), people of other races are higher odds of wearing glasses. Males have statistically significantly lower odds (around 40% lower odds) of wearing glasses/contact lenses compared to females. Lastly, the poverty income ratio (PIR) odds ratio is also positive and statistically significant, meaning that the higher the PIR the greater the odds are of wearing glasses (a one unit increase in PIR increases the odds by about 12%, holding all else constant).
 
-```{r}
+```{r, results = 'asis'}
 # Using stargazer to create table--stargazer needs psc1 for pseudo_R2 according to ChatGPT. Also tried keep.stat, but it doesn't work, so we need to manually add this.
 library(pscl)
 # Calculate pseudo-R² for each model
@@ -192,8 +193,8 @@ pseudo_r2_model3 <- pscl::pR2(model3)["McFadden"]
 
 # Try first
 stargazer(model1, model2, model3,
-          type = "text", # to view in RStudio-- comment out when actually rendering
-       #   type = "html",
+    #      type = "text", # to view in RStudio-- comment out when actually rendering
+          type = "html",
           digits = 3,
           apply.coef = exp, # Exponentiate coefs to get odds ratios
           keep.stat = c("rsq", "adj.rsq", "ll", "aic", "n"),
@@ -293,8 +294,6 @@ film_category_data <- gg(film_category_query)
 least_common_genre <- film_category_data[which.min(film_category_data$count), ]
 print(least_common_genre)
 
-least_common_genre
-
 # Use SQL to answer the question:
 gg("SELECT category.name AS genre, COUNT(film.film_id) AS count
   FROM film
@@ -361,13 +360,13 @@ To get this proportion, we used the following regex to first extract the domain 
 
 * (?<=@): A positive lookbehind to ensure that we are capturing the part after the '@' symbol.
 * [^.]+: Matches any characters until the first period, which represents the domain.
-* \\.(.+): Captures the TLD part after the dot.
+* \\\.(.+): Captures the TLD part after the dot.
 
 
 Then, we used filter(str_detect(tld, "\\.com$")) to filter out only the ".com" TLDs:
 
 * str_detect(): Checks if the TLD ends with .com.
-* \\.com$: Matches .com at the end of the string.
+* \\\.com$: Matches .com at the end of the string.
 
 ```{r}
 # Load necessary library for string manipulation
