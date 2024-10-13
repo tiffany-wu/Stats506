@@ -1,0 +1,143 @@
+---
+title: "Problem Set 4"
+author: "Tiffany Wu"
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+output: html_document
+editor: source
+mainfont: Times New Roman
+---
+
+## Github Repo Link to Problem Set 4:
+[https://github.com/tiffany-wu/Stats506/tree/main/PS4](https://github.com/tiffany-wu/Stats506/tree/main/PS4) 
+
+## Problem 1 - Tidyverse
+
+Use the tidyverse for this problem. In particular, use piping and dplyr as much as you are able. Note: Use of any deprecated functions will result in a point loss.
+
+Install and load the package nycflights13.
+
+```{r}
+rm(list=ls()) 
+
+# Load necessary libraries
+library(tidyverse)
+library(nycflights13)
+
+# Get flights df into environment (for some reason, it won't do it automatically after loading library)
+flights <- flights
+airports <- airports
+```
+
+
+### a. Generate a table (which can just be a nicely printed tibble) reporting the mean and median departure delay per airport. Generate a second table (which again can be a nicely printed tibble) reporting the mean and median arrival delay per airport. Exclude any destination with under 10 flights. Do this exclusion through code, not manually.
+
+### Additionally,
+
+* Order both tables in descending mean delay.
+* Both tables should use the airport names not the airport codes.
+* Both tables should print all rows.
+* How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entires for the model, average speed (in MPH) and number of flights.
+
+# Q
+*CHECK THAT DEPARTURE DELAY = ORIGIN AIRPORT, ARRIVAL DELAY = DESTINATION AIRPORT*
+*DO YOU EXCLUDE ANY DESTINATION WITH UNDER 10 FLIGHTS FOR BOTH TABLES? RIGHT NOW YOU DO NOT.*
+
+```{r}
+# Look at the data w/i nycflights13
+view(flights)
+summary(flights)
+
+# Count unique origin and destination airport names to get feeling of what table should look like
+unique(flights$origin)
+length(unique(flights$dest))
+
+# Departure delay table
+dep_delay <- flights %>%
+  group_by(origin) %>%
+  summarize(
+    mean_dep_delay = mean(dep_delay, na.rm = TRUE),
+    median_dep_delay = median(dep_delay, na.rm = TRUE)
+  ) %>%
+  left_join(airports, by = c("origin" = "faa")) %>%
+  select("Airport Name" = name, "Mean Departure Delay" = mean_dep_delay, "Median Departure Delay" = median_dep_delay) %>%
+  arrange(desc("Mean Departure Delay")) %>%
+  print(n = Inf)
+
+dep_delay
+
+# Arrival delay table
+arrival_delay <- flights %>%
+  group_by(dest) %>%
+  filter(n() >= 10) %>%
+  summarize(
+    mean_arr_delay = mean(arr_delay, na.rm = TRUE),
+    median_arr_delay = median(arr_delay, na.rm = TRUE)
+  ) %>%
+  left_join(airports, by = c("dest" = "faa")) %>%
+  select("Airport Name" = name, "Mean Arrival Delay" = mean_arr_delay, "Median Arrival Delay" = median_arr_delay) %>%
+  arrange(desc("Mean Arrival Delay")) %>%
+  print(n = Inf)  # Print all rows
+
+arrival_delay
+
+```
+
+
+Problem 2 - get_temp()
+Use the tidyverse for this problem. In particular, use piping and dplyr as much as you are able. Note: Use of any deprecated functions will result in a point loss.
+
+Load the Chicago NNMAPS data we used in the visualization lectures. Write a function get_temp() that allows a user to request the average temperature for a given month. The arguments should be:
+
+month: Month, either a numeric 1-12 or a string.
+year: A numeric year.
+data: The data set to obtain data from.
+celsius: Logically indicating whther the results should be in celsius. Default FALSE.
+average_fn: A function with which to compute the mean. Default is mean.
+The output should be a numeric vector of length 1. The code inside the function should, as with the rest of this problem, use the tidyverse. Be sure to sanitize the input.
+
+Prove your code works by evaluating the following. Your code should produce the result, or a reasonable error message.
+
+get_temp("Apr", 1999, data = nnmaps)
+get_temp("Apr", 1999, data = nnmaps, celsius = TRUE)
+get_temp(10, 1998, data = nnmaps, average_fn = median)
+get_temp(13, 1998, data = nnmaps)
+get_temp(2, 2005, data = nnmaps)
+get_temp("November", 1999, data =nnmaps, celsius = TRUE,
+         average_fn = function(x) {
+           x %>% sort -> x
+           x[2:(length(x) - 1)] %>% mean %>% return
+         })
+
+Problem 3 - Visualization
+Note: This is, intentionally, a very open-ended question. There is no “right” answer. The goal is for you to explore your plotting options, and settle on something reasonable. You can use base R, ggplot, or soemthing else. You’ll likely have to look online for resources on plotting beyond what we covered in class.
+
+This dataset lists characteristics of art sales. Download the file named “df_for_ml_improved_new_market” (NOT the “df_for_ml_improved_new_market_1” version!). For each of the following, produce a publication-ready plot which demonstrates the answer to the question. Use your plot to support an argument for your question.
+
+Is there a change in the sales price in USD over time?
+
+Does the distribution of genre of sales across years appear to change?
+
+How does the genre affect the change in sales price over time?
+
+You will be graded on:
+
+Is the type of graph & choice of variables appropriate to answer the question?
+Is the graph clear and easy to interpret?
+Is the graph publication ready?
+
+
+
+
+
+
+
+
+
+
+
+
+
