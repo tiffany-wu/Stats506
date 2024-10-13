@@ -40,7 +40,6 @@ airports <- airports
 * Order both tables in descending mean delay.
 * Both tables should use the airport names not the airport codes.
 * Both tables should print all rows.
-* How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entires for the model, average speed (in MPH) and number of flights.
 
 # Q
 *CHECK THAT DEPARTURE DELAY = ORIGIN AIRPORT, ARRIVAL DELAY = DESTINATION AIRPORT*
@@ -86,17 +85,53 @@ arrival_delay
 
 ```
 
+### How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entires for the model, average speed (in MPH) and number of flights.
 
-Problem 2 - get_temp()
+Aircraft model 777-222, with the fastest average speek, made 1 flight.
+
+# Q
+*CHECK-- JUST MADE 1 FLIGHT? DOES THIS SOUND RIGHT?*
+
+```{r}
+# Check planes df
+summary(planes)
+planes <- planes
+
+# Make df of the fastest aircraft models
+fastest_aircraft <- flights %>%
+  # Calculate speed in MPH
+  mutate(speed = distance / (air_time / 60)) %>%  
+  group_by(tailnum) %>%
+  summarize(
+    # Average speed per aircraft
+    avg_speed = mean(speed, na.rm = TRUE), 
+    # Number of flights for the aircraft
+    n_flights = n()  
+  ) %>%
+  ungroup() %>%
+  arrange(desc(avg_speed)) %>%
+  # Select the aircraft with the highest average speed
+  slice(1) %>%  
+  # Get the aircraft model from the planes dataset
+  left_join(planes, by = "tailnum") %>%  
+  select("Model" = model, "Average Speed" = avg_speed, "Number of Flights" = n_flights)  # Select the relevant columns
+
+fastest_aircraft
+```
+
+
+## Problem 2 - get_temp()
+
 Use the tidyverse for this problem. In particular, use piping and dplyr as much as you are able. Note: Use of any deprecated functions will result in a point loss.
 
 Load the Chicago NNMAPS data we used in the visualization lectures. Write a function get_temp() that allows a user to request the average temperature for a given month. The arguments should be:
 
-month: Month, either a numeric 1-12 or a string.
-year: A numeric year.
-data: The data set to obtain data from.
-celsius: Logically indicating whther the results should be in celsius. Default FALSE.
-average_fn: A function with which to compute the mean. Default is mean.
+* month: Month, either a numeric 1-12 or a string.
+* year: A numeric year.
+* data: The data set to obtain data from.
+* celsius: Logically indicating whther the results should be in celsius. Default FALSE.
+* average_fn: A function with which to compute the mean. Default is mean.
+
 The output should be a numeric vector of length 1. The code inside the function should, as with the rest of this problem, use the tidyverse. Be sure to sanitize the input.
 
 Prove your code works by evaluating the following. Your code should produce the result, or a reasonable error message.
@@ -111,6 +146,129 @@ get_temp("November", 1999, data =nnmaps, celsius = TRUE,
            x %>% sort -> x
            x[2:(length(x) - 1)] %>% mean %>% return
          })
+
+```{r}
+# Read in nnmaps
+nnmaps <- read_csv("chicago-nmmaps.csv")
+
+# Define the function to get the average temperature
+
+#' Get the average temperature for a given month and year
+#'
+#' This function computes the average temperature for a specified month and year from a given dataset.
+#' Users can specify the format of the month (numeric or string), and whether the temperature should be 
+#' reported in Celsius or Fahrenheit. It also allows custom averaging functions.
+#'
+#' @param month_input Either a numeric value (1-12) or a string representing the month (e.g., "Jan", "April").
+#' @param year_input A numeric value representing the year.
+#' @param data A data frame containing temperature data, with columns for `year`, `month`, and `temp`.
+#' @param celsius A logical value indicating whether the temperature should be returned in Celsius. Default is FALSE (Fahrenheit).
+#' @param average_fn A function used to compute the average. Default is `mean`. Custom functions can be provided.
+#'
+#' @return A numeric vector of length 1 representing the average temperature for the given month and year.
+#' If `celsius = TRUE`, the temperature is returned in Celsius; otherwise, it is returned in Fahrenheit.
+#' 
+#' @examples
+#' get_temp("Apr", 1999, data = nnmaps)
+#' 
+get_temp <- function(month_input, year_input, data, celsius = FALSE, average_fn = mean) {
+  
+   # Check if the input month is a valid number (1-12) or a valid month string
+  
+   # If the input is numeric, check if it falls between 1 and 12 and convert it to the 3-letter abbreviation
+  if (is.numeric(month_input)) {
+    if (month_input %in% 1:12) {
+      month_input <- month.abb[month_input]  # Convert numeric month to abbreviation
+    } else {
+      stop("Invalid month: Please provide a month number between 1 and 12.")
+    }
+  }
+  
+    # Now do characters
+    # ChatGPT: setNames(1:12, month.abb) pairs the numeric vector (1–12) with the month abbreviations as names. It creates a named vector where the names (keys) are the month abbreviations, and the values are the corresponding numbers:
+  
+ # If the input month is a string, ensure it is a valid 3-letter abbreviation
+  if (is.character(month_input)) {
+    # Convert the first 3 letters of the input to lowercase
+    sanitized_month <- tolower(substr(month_input, 1, 3))
+    
+    # Match the sanitized input to the valid month abbreviations
+    month_index <- match(sanitized_month, tolower(month.abb))
+    
+    # If the month is valid (not NA), convert it to the correct format with the first letter capitalized
+    if (!is.na(month_index)) {
+      month_input <- month.abb[month_index]  # This will return "Jan", "Feb", "Oct", etc.
+    } else {
+      stop("Invalid month: Please provide a valid month string (e.g., 'Jan').")
+    }
+  }
+
+  # Check if the year exists in the dataset
+  if (!year_input %in% data$year) {
+    stop("Invalid year: Year not found in the dataset.")
+  }
+
+  # Filter the data for the requested month and year
+  filtered_data <- data %>%
+    filter(year == year_input, 
+           month == month_input)
+  
+  # If no data is available for that month and year, throw an error
+  if (nrow(filtered_data) == 0) {
+    stop("No data available for the requested month and year.")
+  }
+  
+  # Calculate the average temperature
+  avg_temp <- filtered_data %>%
+    summarize(average_temp = average_fn(temp)) %>%
+    pull(average_temp)
+  
+  # Convert to Celsius if requested
+  if (celsius) {
+    avg_temp <- (avg_temp - 32) * 5 / 9
+  }
+  
+  return(avg_temp)
+}
+
+# Test examples
+
+# Example 1: April 1999 in Fahrenheit
+get_temp("Apr", 1999, data = nnmaps)
+
+# Check using Tidyverse
+check <- nnmaps %>%
+  group_by(month, year) %>%
+  mutate(avg_temp = mean(temp)) %>%
+  filter(month == "Apr",
+         year == 1999) %>%
+  distinct(avg_temp)
+check
+
+# Example 2: April 1999 in Celsius
+get_temp("Apr", 1999, data = nnmaps, celsius = TRUE)
+
+# Example 3: October 1998 using median function
+get_temp(10, 1998, data = nnmaps, average_fn = median)
+
+# Example 4: Invalid month (13)
+get_temp(13, 1998, data = nnmaps)
+
+# Example 5: February 2005 in Fahrenheit
+get_temp(2, 2005, data = nnmaps)
+
+# Example 6: November 1999 with a custom average function, in Celsius
+get_temp("November", 1999, data = nnmaps, celsius = TRUE, 
+         average_fn = function(x) {
+           x <- sort(x)
+           mean(x[2:(length(x) - 1)])  # Trimmed mean
+         })
+
+
+  
+```
+
+
 
 Problem 3 - Visualization
 Note: This is, intentionally, a very open-ended question. There is no “right” answer. The goal is for you to explore your plotting options, and settle on something reasonable. You can use base R, ggplot, or soemthing else. You’ll likely have to look online for resources on plotting beyond what we covered in class.
