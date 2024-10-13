@@ -52,7 +52,7 @@ substr(s, 3, 5) <- "3" # replace positions 3-5 with "XYZ". If shorter than 3 cha
 s
 
 # grep and grepl
-# grepl returns position, grepl returns logical
+# grep returns position, grepl returns logical
 # First argument is search term, second argument is what you want to search inside
 grep("abc", "abcdefgh") #1
 grepl("abc", "abcdefgh") # TRUE
@@ -130,7 +130,7 @@ powers[grep("q[ui]e", powers)]
 # Don't match u or i, anything else is game. Carrot inside brackets says NOT. outside brackets says START.
 powers[grep("q[^ui]", powers)]
 
-# Find all powers with 2 concecutive vowels
+# Find all powers with 2 consecutive vowels
 powers[grep("[aeiou][aeiou]", powers)]
 powers[grep("[aeiou]{2}", powers)] #match anything in aeiou exactly twice. Same ouput as above
 head(powers[grepl("[aeiou]{2,3}", powers)])
@@ -166,7 +166,7 @@ head(powers[grep("(eed|ili)", powers)])
 
 # Match any character first
 # \1 is the capture group, first \ escapes the second \
-grep("[a-z]\\1")
+grep("([a-z])\\1")
 
 # Match anything that appears twice (e.g., aa, bb, cc)
 head(powers[grep("(.)\\1", powers)])
@@ -244,8 +244,113 @@ table(as.numeric(regmatches(bdrmlist, matches)))
 - line 233, why did the first one not give you 1-10?
 
 
+# Plotting
 
+## Base R
 
+```{r}
+nnmaps <- read.csv("chicago-nmmaps.csv")
+
+# Need to handle date-- Have to convert to date var, or R will treat as string
+nnmaps$date <- as.Date(nnmaps$date)
+
+# Plot
+plot(nnmaps$o3 ~ nnmaps$date)
+# or x, y
+plot(nnmaps$date, nnmaps$o3)
+
+# With function
+with(nnmaps, plot(o3 ~ date))
+
+# Can do multiple functions within "with"
+with(nnmaps, { 
+  print(mean(o3)) 
+  plot(o3 ~ date)
+  })
+
+# Color by season-- will not work unless season is a factor instead of a string
+nnmaps$season <- factor(nnmaps$season,
+                           levels = c("Winter", "Spring",
+                                      "Summer", "Autumn"))
+with(nnmaps, 
+     plot(o3 ~ date, col = season))
+with(nnmaps,
+     legend("topleft", levels(season),
+            col = unique(season),
+            pch = 1)) #unique gives you only 4 seasons
+
+# Can do it  in 1 func
+
+with(nnmaps, {
+  plot(o3 ~ date, col = season, pch = 2)
+   legend("topleft", levels(season),
+            col = unique(season),
+            pch = 2)
+})
+
+# Plot average by month
+suppressWarnings(nnmaps_month <-
+                   aggregate(nnmaps, by = list(nnmaps$month_numeric,
+                                               nnmaps$year),
+                             FUN = mean, na.rm = TRUE))
+nnmaps_month <- nnmaps_month[order(nnmaps_month$year,
+                                   nnmaps_month$month_numeric), ]
+with(nnmaps_month,
+     plot(o3 ~ date, type = "l"))
+
+# Plot average over raw values
+with(nnmaps, plot(o3 ~ date, col = "lightgrey"))
+with(nnmaps_month, lines(o3 ~ date))
+with(nnmaps_month, lines(o3 ~ date, lwd = 4, col = "red"))
+
+# par() are global parameters for plotting arguments:
+# Always make a backup to restore plot back to original after you're done playing around
+oldpar <- par(no.readonly = TRUE) # no.readonly avoids warnings later
+par(bg = "darkgrey",
+    fg = "lightblue",
+    col.axis = "lightgreen",
+    col.lab = "purple",
+    lwd = 4)
+with(nnmaps, plot(o3 ~ date, pch = "*", bg = "red", col.lab = "red"))
+with(nnmaps_month, lines(o3 ~ date, col = "red"))
+
+# Add sinusoidal curve
+# Sort by date
+nnmaps <- nnmaps[order(nnmaps$date), ]
+# Generate a numeric time variable
+nnmaps$day <- seq_len(nrow(nnmaps))/365
+nnmaps$daycos <- cos(2 * pi * nnmaps$day)
+nnmaps$daysin <- sin(2 * pi * nnmaps$day)
+mod <- lm(o3 ~ daycos + daysin, data = nnmaps)
+pred <- data.frame(predict(mod, interval = "confidence", newdata = nnmaps)) # interval = "prediction" will produce larger bounds because it's for each individual points.
+
+with(nnmaps, plot(o3 ~ day, col = "darkgrey"))
+lines(pred$fit ~ nnmaps$day, col = "red", lwd = 4)
+lines(pred$lwr ~ nnmaps$day, lty = "dashed")
+lines(pred$upr ~ nnmaps$day, lty = "dashed")
+polygon(c(rev(nnmaps$day), nnmaps$day), c(rev(pred$upr), pred$lwr),
+        col = rgb(.5, .5, .5, .2), border = NA)
+legend("topright", legend = c("Observed", "Fitted"),
+       lty = c(NA, 1), lwd = c(NA, 4),
+       pch = c(1, NA),
+       col = c("darkgrey", "red"))
+```
+
+## ggplot
+The basic template of any ggplot2 plot is:
+
+ggplot(data = <DATA>,
+       mapping = aes(<MAPPING>)) +
+  <GEOM_FUNCTION>(
+     stat = <STAT>,
+     position = <POSITION>
+  ) +
+  <COORDINATE_FUNCTION> +
+  <FACET_FUNCTION> +
+  <SCALE_FUNCTION> +
+  <THEME_FUNCTION>
+
+There are 9 arguments, wrapped in brackets, which can be defined. Rarely will all 9 be defined; sometimes you will define multiple versions of arguments. Only the first three, <DATA>, <MAPPING> and <GEOM_FUNCTION>, are required to produce a meaningful plot.
 
 # Q's
 - Quiz 3
