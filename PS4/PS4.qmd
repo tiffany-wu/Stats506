@@ -264,22 +264,163 @@ get_temp("November", 1999, data = nnmaps, celsius = TRUE,
            mean(x[2:(length(x) - 1)])  # Trimmed mean
          })
 
-
-  
 ```
 
+## Problem 3 - Visualization
 
-
-Problem 3 - Visualization
 Note: This is, intentionally, a very open-ended question. There is no “right” answer. The goal is for you to explore your plotting options, and settle on something reasonable. You can use base R, ggplot, or soemthing else. You’ll likely have to look online for resources on plotting beyond what we covered in class.
 
 This dataset lists characteristics of art sales. Download the file named “df_for_ml_improved_new_market” (NOT the “df_for_ml_improved_new_market_1” version!). For each of the following, produce a publication-ready plot which demonstrates the answer to the question. Use your plot to support an argument for your question.
 
-Is there a change in the sales price in USD over time?
+```{r}
+# Load art sales df
+art <- read_csv("df_for_ml_improved_new_market.csv")
 
-Does the distribution of genre of sales across years appear to change?
+# Get a sense of what it is first
+psych::describe(art)
+```
 
-How does the genre affect the change in sales price over time?
+### a. Is there a change in the sales price in USD over time?
+
+There does seem to be a change in sales prices in USD over time. Below is a line plot showing the mean and median USD prices from 1997-2012. From the mean average line, we see a big change from under 10000 dollars in 1997 to over 40000 dollars at the peak of 2008, down to about 30000 dollars from 2009-2012. This is a 20000-30000 change in the average price. Of course, the mean is highly influenced by outliers, so this tells us there are likely more really rare, highly expensive art being sold in more recent years, or the value of certain art pieces being sold got a lot higher due to certain events (e.g., a really rich art connoisseur willing to pay a lot for a Van Gogh, etc.) 
+
+The median shows a less drastic change, from an average of around 5000 dollars around 1997 to an average of about 11000 dollars from 2009-2012. This is still a rise (more than a doubling) of the average sales price over time, just less dramatic than the change we see when looking at the mean.
+
+```{r}
+# Art summary -- get mean and median USD prices per year
+art_summary <- art %>%
+  group_by(year) %>%
+  summarize(
+    mean_price = mean(price_usd, na.rm = TRUE),
+    median_price = median(price_usd, na.rm = TRUE)
+  )
+
+# Plot median and mean sales prices over time
+ggplot(art_summary, aes(x = year)) +
+  geom_line(aes(y = mean_price, color = "Mean"), linewidth = 1) +  # Line for mean sales price
+  geom_line(aes(y = median_price, color = "Median"), linewidth = 1, linetype = "dashed") +  # Line for median sales price
+  scale_x_continuous(breaks = seq(min(art_summary$year), max(art_summary$year), by = 2)) +  # 2-year increments
+  labs(
+    title = "Median and Mean Sales Prices in USD from 1997-2012",
+    x = "Year",
+    y = "Sales Price (USD)",
+    color = "Average Calculation"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    text = element_text(size = 12),
+    legend.position = "bottom"
+  )
+```
+
+
+### b. Does the distribution of genre of sales across years appear to change?
+
+Overall, more art of all genres seems to be getting sold from 1997-2012. However, from 1997-1999, it seemed like the genre of sales were all close to each other--one genre did not sell more than the others. From 1999-2012, we see a separation of the genres, where photograph and sculpture genres sell much more than print, painting, and other genres. This gap between genre widens from 1999-2012 as well.
+
+```{r}
+# Get year and genre columns
+genre <- art %>%
+  select(year, starts_with("Genre")) %>%
+  # Get rid of the Genre___ start so we can just use the genre name for plot
+  rename_with(~ gsub("Genre___", "", .), starts_with("Genre___"))
+
+# Go from wide to long
+genre_long <- genre %>%
+  pivot_longer(
+    cols = -year,  # Exclude the 'year' column from pivoting
+    names_to = "genre",  # The new column that will hold genre names
+    values_to = "count"  # The new column that will hold the counts of each genre
+  )
+
+# Get counts for each genre for each year 
+genre_summary <- genre_long %>%
+  group_by(year, genre) %>%
+  summarize(total_sales = sum(count, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Other")))
+
+# Plot the distribution of genres across years using a line plot
+ggplot(genre_summary, aes(x = year, y = total_sales, color = genre)) +
+  geom_line(size = 1) +  # Line plot for each genre
+  scale_x_continuous(breaks = seq(min(art_summary$year), max(art_summary$year), by = 2)) +  # 2-year increments
+  labs(
+    title = "Distribution of Genre of Sales Across Years",
+    x = "Year",
+    y = "Total Sales",
+    color = "Genre"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    text = element_text(size = 12),
+    legend.position = "bottom"
+  )
+
+```
+
+
+### c. How does the genre affect the change in sales price over time?
+
+# Q
+*OTHERS category is used with other genres??? Don't include it for now if another genre was also checked...*
+
+Photography art sales seems to sell for the highest prices, especially in years closest to 2012-- they have the biggest increase in mean and median art sale prices, as seen in the graphs below. This is followed by print sales, which seem to oscillate a lot more, painting, and sculpture. The latter three have a mean price of around 20000 dollars in 2012 while photography's mean is over 40000 dollars.
+
+```{r}
+# Get df for year, genre, and prices
+sales_summary <- art %>%
+  select(year, price_usd, starts_with("Genre")) %>%
+  # Get rid of the Genre___ start so we can just use the genre name for plot
+  rename_with(~ gsub("Genre___", "", .), starts_with("Genre___")) %>%
+  mutate(genre = case_when(Photography == 1 ~ "Photography",
+                           Print == 1 ~ "Print",
+                           Sculpture == 1 ~ "Sculpture",
+                           Painting == 1 ~ "Painting",
+                           Others == 1 ~ "Other")) %>%
+  group_by(year, genre) %>%
+  summarize(
+    mean_price = mean(price_usd, na.rm = TRUE),
+    median_price = median(price_usd, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Other")))
+
+# Mean price plot
+ggplot(sales_summary, aes(x = year, y = mean_price, color = genre)) +
+  geom_line(size = 1) + 
+  labs(
+    title = "Mean Sales Price Over Time by Genre",
+    x = "Year",
+    y = "Mean Sales Price (USD)",
+    color = "Genre"  # Legend title for genre colors
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    text = element_text(size = 12),
+    legend.position = "bottom"  # Place the legend at the bottom
+  )
+
+# Median price plot
+ggplot(sales_summary, aes(x = year, y = median_price, color = genre)) +
+  geom_line(size = 1) + 
+  labs(
+    title = "Median Sales Price Over Time by Genre",
+    x = "Year",
+    y = "Median Sales Price (USD)",
+    color = "Genre"  # Legend title for genre colors
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    text = element_text(size = 12),
+    legend.position = "bottom"  # Place the legend at the bottom
+  )
+
+```
+
 
 You will be graded on:
 
