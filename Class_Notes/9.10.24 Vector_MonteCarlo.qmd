@@ -46,6 +46,13 @@ for (i in 1:length(x)){
 }
 s0
 
+s0 <- 0
+for(i in x) {
+  s0 <- s0 + i
+  print(s0)
+ # return(added)
+}
+
 system.time(sum(x)) #not super useful because sum is going too fast. R's timing system can't catch this
 ```
 

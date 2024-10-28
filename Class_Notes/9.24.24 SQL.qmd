@@ -7,9 +7,11 @@ editor: visual
 # 9.24.24 (cont.)
 
 ## SQL
+
 Many different flavors of SQL. We will use SQLite.
 
 ### Lahman example : Baseball
+
 ```{r}
 library(DBI) # necessary evil. Holds SQL to R, handles backend so they can talk to each other
 library(RSQLite)
@@ -29,6 +31,7 @@ dbListFields(lahman, "People")
 ```
 
 ### Writing SQL Queries
+
 ```{r}
 # query: entire string with statement and clauses
 # statement: "SELECT ____"
@@ -60,6 +63,7 @@ gg("SELECT *
 ```
 
 # 9.26.24 SQL (cont.)
+
 ```{r}
 # List all the tables available in lahman
 dbListTables(lahman)
@@ -117,11 +121,19 @@ gg("SELECT namefirst FROM people")
 gg("SELECT namelast
    FROM people
    WHERE namelast LIKE '%iff%'")
+
+gg("SELECT SUM(hr)
+   FROM batting")
+
+gg("SELECT playerid, SUM(hr)
+   FROM batting
+   GROUP BY playerid")
 ```
 
 ## Matching-- see above
 
 ## Sorting
+
 ```{r}
 # See Batting vars
 dbListFields(lahman, "batting")
@@ -134,6 +146,7 @@ gg("SELECT playerid, hr
 ```
 
 ## Functions
+
 ```{r}
 gg("
    SELECT *
@@ -174,6 +187,7 @@ gg("SELECT playerid, SUM(hr) AS sum_hr
 ```
 
 # SQL Joins
+
 ```{r}
 # 3 people with > 340 hrs
 gg("SELECT playerid, SUM(hr) AS sum_hr
@@ -284,8 +298,10 @@ gg("SELECT schoolid, COUNT(schoolid) AS count
 # Once you're outside join, you have 1 table, so you don't have to specify the schoolid and count tables
 ```
 
-# Sakila: 
+# Sakila:
+
 Blockbuster-esque example, fake data.
+
 ```{r}
 sakila <- dbConnect(SQLite(), "sakila_master.db")
 
@@ -293,6 +309,7 @@ sakila <- dbConnect(SQLite(), "sakila_master.db")
 ```
 
 Which actor/actress is most commonly rented?
+
 ```{r}
 # Which actor/actress is most commonly rented?
 gg <- function(query){
@@ -355,20 +372,3 @@ gg("SELECT COUNT(a.actor_id), a.first_name, a.last_name, fari.actor_id, fari.fil
 
 # GINA DEGENERES, with 753 rentals
 ```
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-

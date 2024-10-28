@@ -56,6 +56,7 @@ jupyter: python3
 The `echo: false` option disables the printing of code (only output is displayed). The backticks allow you to talk about a function/highlight it in the Markdown output. `r round(1.5567)` can allow you to pull R output, or pull a variable, etc. into your text. Usually you use this with echo=F and then pull output to display in the text.
 
 # Working directories
+
 ```{r}
 dir() # Gets names of all files in the directory
 getwd()
@@ -75,10 +76,10 @@ saveRDS(mtcars, file = "rdsobject.rds")
 mtcars2 <- readRDS("rdsobject.rds") # Need to assign name to the object when you read it in
 ```
 
-
 # 9.3.24 Notes
 
 ## Vectors
+
 ```{r}
 # Figure out directory
 dir()
@@ -145,7 +146,9 @@ TRUE <- 5 # R will not let you do this
 ```
 
 ## Lists
-Lists are just like vectors except you can MIX TYPES. 
+
+Lists are just like vectors except you can MIX TYPES.
+
 ```{r}
 list(1, "a") # 1 will stay double, "a" will be character
 
@@ -170,18 +173,21 @@ a[2]
 b <- c("First" = 1, "second" = 2) # Name the elements
 b[1]
 
+b[1] <- 105
 
 # Renaming
 names(b) <- c("uno", "dos")
 b
+names(b) <- NULL
 
 # You can attach multiple classes to 1 object
 
 ```
 
 ## Matrices
-Vectors are 1-D. Matrices are multiple dimensions.
-Matrices are just vectors with a dimension attribute
+
+Vectors are 1-D. Matrices are multiple dimensions. Matrices are just vectors with a dimension attribute
+
 ```{r}
 matrix(c(1,2,3,4), nrow = 2) # = 2x2 matrix
 
@@ -206,6 +212,7 @@ attr(b, "animal") <- NULL # gets rid of attribute, strips out what you just set
 ```
 
 ## Data frame
+
 ```{r}
 df <- data.frame(a = 1:4,
                  b = c("a", "b", "c", "d"),
@@ -229,6 +236,7 @@ df[1,]
 ```
 
 ## Logical operations
+
 ```{r}
 (3>5) & (2<4) # FALSE because at least 1 is false
 (3>5) | (2<4) # OR, TRUE because at least 1 is true
@@ -245,6 +253,7 @@ TRUE && NA # is NA
 ```
 
 ## Functions
+
 ```{r}
 runif(4) # gives 3 random numbers (n, min, max) = arguments
 # Same as runif(n=4) because n is the first argument of the function
@@ -257,6 +266,7 @@ runif(min=3, max=20, 4) # will run, will figure out n=4 because it's the last ar
 # 9.5.24 Notes
 
 ## More Functions
+
 ```{r}
 # Functions
 foo <- function(){
@@ -359,6 +369,7 @@ bas() # returns p AND creates p in global environment w/ value of 5
 ```
 
 ## Control statements
+
 Like if/elseif/else statemnents and loops
 
 ```{r}
@@ -411,29 +422,7 @@ while (sum < 15) {
 }
 ```
 
-
-
 ```{r}
 rm(list = ls())
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

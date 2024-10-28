@@ -12,7 +12,7 @@ String in R are "abc" or 'abc'.
 
 But if you need the string to include a quotation, use the other one inside. E.g. "this is a 'scare quote'".
 
-"this is a \"scare quote\""
+"this is a "scare quote""
 
 ```{r}
 typeof("abc")
@@ -65,6 +65,7 @@ sapply(c("abc", "ghi"), FUN = grepl, c("abcedf", "defghi")) #abc is found in fir
 ```
 
 ## Playing around with real data
+
 ```{r}
 # Superpower dataframe
 powers <- readLines("https://raw.githubusercontent.com/nolshru/SuperpowerRandSelector/main/PlaintextSuperpowerList.txt")
@@ -108,9 +109,9 @@ head(strsplit(powers, " ")) # split words if they have a space between them
 
 Regex does pattern matching.
 
-Start of string ^pattern
+Start of string \^pattern
 
-End of string pattern$
+End of string pattern\$
 
 ```{r}
 ## find all powers with an "q" anywhere in the word
@@ -173,9 +174,15 @@ head(powers[grep("(.)\\1", powers)])
 
 # Match more than 1 thing multiple times (e.g., aabb, eell). Has to be consecutive
 head(powers[grep("(.)\\1(.)\\2", powers)])
+
+# Any power with speed OR mastery in it
+head(powers[grep("(speed|mastery)", powers)]) 
+#Here, [speed|mastery] is interpreted as matching any single character that is either 's', 'p', 'e', 'd', '|', 'm', 'a', 't', 'r', or 'y'.
+head(powers[grep("[speed|mastery]", powers)])
 ```
 
 ## Extracting the pattern
+
 ```{r}
 a <- "NY Mets"
 pattern <- "M..s"
@@ -201,8 +208,8 @@ ils <- sub(" $", "", ils) # This will still give "" as answer
 ils <- sub(" $", "$", ils)  #"$" signifies the END of the string, will get rid of "" as an answer
 ```
 
-
 ## Airbnb example
+
 ```{r}
 boston <- read.csv("https://data.insideairbnb.com/united-states/ma/boston/2024-06-22/visualisations/listings.csv")
 
@@ -239,10 +246,10 @@ table(as.numeric(regmatches(bdrmlist, matches)))
 ```
 
 # Q's
-- Interactions: main effects stat. sig. or not stat. sig. if interaction is
-- Line 220 vs. 221, why is the result different? 
-- line 233, why did the first one not give you 1-10?
 
+-   Interactions: main effects stat. sig. or not stat. sig. if interaction is
+-   Line 220 vs. 221, why is the result different?
+-   line 233, why did the first one not give you 1-10?
 
 # Plotting
 
@@ -337,29 +344,14 @@ legend("topright", legend = c("Observed", "Fitted"),
 ```
 
 ## ggplot
+
 The basic template of any ggplot2 plot is:
 
-ggplot(data = <DATA>,
-       mapping = aes(<MAPPING>)) +
-  <GEOM_FUNCTION>(
-     stat = <STAT>,
-     position = <POSITION>
-  ) +
-  <COORDINATE_FUNCTION> +
-  <FACET_FUNCTION> +
-  <SCALE_FUNCTION> +
-  <THEME_FUNCTION>
+ggplot(data = <DATA>, mapping = aes(<MAPPING>)) + <GEOM_FUNCTION>( stat = <STAT>, position = <POSITION> ) + <COORDINATE_FUNCTION> + <FACET_FUNCTION> + <SCALE_FUNCTION> + <THEME_FUNCTION>
 
 There are 9 arguments, wrapped in brackets, which can be defined. Rarely will all 9 be defined; sometimes you will define multiple versions of arguments. Only the first three, <DATA>, <MAPPING> and <GEOM_FUNCTION>, are required to produce a meaningful plot.
 
 # Q's
-- Quiz 3
-- For switch function-- why use sapply and not a different apply function? How do I pick?
 
-
-
-
-
-
-
-
+-   Quiz 3
+-   For switch function-- why use sapply and not a different apply function? How do I pick?
