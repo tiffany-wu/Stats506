@@ -41,14 +41,10 @@ airports <- airports
 * Both tables should use the airport names not the airport codes.
 * Both tables should print all rows.
 
-# Q
-*CHECK THAT DEPARTURE DELAY = ORIGIN AIRPORT, ARRIVAL DELAY = DESTINATION AIRPORT*
-*DO YOU EXCLUDE ANY DESTINATION WITH UNDER 10 FLIGHTS FOR BOTH TABLES? RIGHT NOW YOU DO NOT.*
-
 ```{r}
-# Look at the data w/i nycflights13
-view(flights)
-summary(flights)
+# Look at the data w/i nycflights13 -- commented out for html render for easier grading
+# view(flights)
+# summary(flights)
 
 # Count unique origin and destination airport names to get feeling of what table should look like
 unique(flights$origin)
@@ -66,36 +62,36 @@ dep_delay <- flights %>%
   arrange(desc("Mean Departure Delay")) %>%
   print(n = Inf)
 
-dep_delay
-
 # Arrival delay table
 arrival_delay <- flights %>%
   group_by(dest) %>%
-  filter(n() >= 10) %>%
+  filter(n() >= 10) %>% # exclude any destination with under 10 flights
   summarize(
     mean_arr_delay = mean(arr_delay, na.rm = TRUE),
     median_arr_delay = median(arr_delay, na.rm = TRUE)
   ) %>%
+  ungroup() %>%
   left_join(airports, by = c("dest" = "faa")) %>%
+  # Some of the airport joins produce an NA? Manually look up the 4 airport names that weren't joined on Google and input them.
+  mutate(name = case_when(dest == "PSE" ~ "Mercedita International Airport",
+                          dest == "SJU" ~ "Luis Munoz Marin International Airport",
+                          dest == "STT" ~ "Cyril E. King Airport",
+                          dest == "BQN" ~ "Aeropuerto Internacional Rafael Hernández",
+                          TRUE ~ name)) %>%
+  arrange(desc(mean_arr_delay)) %>%
   select("Airport Name" = name, "Mean Arrival Delay" = mean_arr_delay, "Median Arrival Delay" = median_arr_delay) %>%
-  arrange(desc("Mean Arrival Delay")) %>%
   print(n = Inf)  # Print all rows
-
-arrival_delay
 
 ```
 
 ### How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entires for the model, average speed (in MPH) and number of flights.
 
-Aircraft model 777-222, with the fastest average speed, made 1 flight.
-
-# Q
-*CHECK-- JUST MADE 1 FLIGHT? DOES THIS SOUND RIGHT?*
+Aircraft model 777-222 has the fastest average speed and made 1 flight.
 
 ```{r}
-# Check planes df
-summary(planes)
-planes <- planes
+# Check planes df, commented out for easier grading
+# summary(planes)
+planes <- planes # to get into environment
 
 # Make df of the fastest aircraft models
 fastest_aircraft <- flights %>%
@@ -136,18 +132,8 @@ The output should be a numeric vector of length 1. The code inside the function 
 
 Prove your code works by evaluating the following. Your code should produce the result, or a reasonable error message.
 
-get_temp("Apr", 1999, data = nnmaps)
-get_temp("Apr", 1999, data = nnmaps, celsius = TRUE)
-get_temp(10, 1998, data = nnmaps, average_fn = median)
-get_temp(13, 1998, data = nnmaps)
-get_temp(2, 2005, data = nnmaps)
-get_temp("November", 1999, data =nnmaps, celsius = TRUE,
-         average_fn = function(x) {
-           x %>% sort -> x
-           x[2:(length(x) - 1)] %>% mean %>% return
-         })
 
-```{r}
+```{r, error = TRUE}
 # Read in nnmaps
 nnmaps <- read_csv("chicago-nmmaps.csv")
 
@@ -274,10 +260,10 @@ This dataset lists characteristics of art sales. Download the file named “df_f
 
 ```{r}
 # Load art sales df
-art <- read_csv("df_for_ml_improved_new_market.csv")
+art <- read.csv("df_for_ml_improved_new_market.csv")
 
-# Get a sense of what it is first
-psych::describe(art)
+# Get a sense of what it is first, commented out for grading
+# psych::describe(art)
 ```
 
 ### a. Is there a change in the sales price in USD over time?
@@ -317,14 +303,17 @@ ggplot(art_summary, aes(x = year)) +
 
 ### b. Does the distribution of genre of sales across years appear to change?
 
-Overall, more art of all genres seems to be getting sold from 1997-2012. However, from 1997-1999, it seemed like the genre of sales were all close to each other--one genre did not sell more than the others. From 1999-2012, we see a separation of the genres, where photograph and sculpture genres sell much more than print, painting, and other genres. This gap between genre widens from 1999-2012 as well.
+Overall, as seen in the bar graph, more art of all genres seems to be getting sold as the years progress. However, from 1997-1999, it seemed like the genre of sales were all close to each other--one genre did not sell more than the others since not a lot of art was getting sold in general. From 1999-2012, we see a separation of the genres, where photography and sculpture genres sell much more than print, painting, and other genres (note that if a work of art qualified as more than 1 genre, we included them in their independent genres along with a category called "Two+ Genres"). This gap between the photography/sculpture genres and other genres widens from 1999-2012 as well, as emphasized by the line graph below meant to complement the bar graph for this question.
 
-```{r}
+```{r, warning = FALSE}
 # Get year and genre columns
 genre <- art %>%
   dplyr::select(year, starts_with("Genre")) %>%
   # Get rid of the Genre___ start so we can just use the genre name for plot
-  rename_with(~ gsub("Genre___", "", .), starts_with("Genre___"))
+  rename_with(~ gsub("Genre___", "", .), starts_with("Genre___")) %>%
+  mutate(two_plus = rowSums(select(., Photography, Print, Sculpture, Painting, Others), na.rm = TRUE)) %>%
+  mutate("Two+ Genres" = ifelse(two_plus > 1, 1, 0)) %>%
+  select(-two_plus)
 
 # Go from wide to long
 genre_long <- genre %>%
@@ -339,7 +328,7 @@ genre_summary <- genre_long %>%
   group_by(year, genre) %>%
   summarize(total_sales = sum(count, na.rm = TRUE)) %>%
   ungroup() %>%
-  mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Other")))
+  mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Others", "Two+ Genres")))
 
 
 # Factor so the bars will be ordered in ggplot
@@ -389,12 +378,7 @@ ggplot(genre_summary, aes(x = year, y = total_sales, color = genre)) +
 
 ### c. How does the genre affect the change in sales price over time?
 
-# Q
-*OTHERS category is used with other genres??? Don't include it for now if another genre was also checked...*
-
-*SHOULD SHOW YOU KNOW HOW TO MAKE OTHER GRAPHS?*
-
-Photography art sales seems to sell for the highest prices, especially in years closest to 2012-- they have the biggest increase in mean and median art sale prices, as seen in the graphs below. This is followed by print sales, which seem to oscillate a lot more, painting, and sculpture. The latter three have a mean price of around 20000 dollars in 2012 while photography's mean is over 40000 dollars.
+Photography art sales seem to sell for the highest prices, especially in years closest to 2012-- they have the biggest increase in mean and median art sale prices and the biggest increase in sales price over time, as seen in the graphs below. This is followed by print sales, which seem to oscillate a lot more, painting, and sculpture. The latter three have a mean price of around 20000 dollars in 2012 while photography's mean is over 40000 dollars. (Note that if a work of art included two or more genres, usually with the second genre being "Other", we used the artwork's primary genre.)
 
 ```{r}
 # Get df for year, genre, and prices
@@ -448,23 +432,5 @@ ggplot(sales_summary, aes(x = year, y = median_price, color = genre)) +
   )
 
 ```
-
-
-You will be graded on:
-
-Is the type of graph & choice of variables appropriate to answer the question?
-Is the graph clear and easy to interpret?
-Is the graph publication ready?
-
-
-
-
-
-
-
-
-
-
-
 
 
