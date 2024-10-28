@@ -44,6 +44,8 @@ merged_data <- merge(vix, demo, by = "SEQN")
 # Check the total sample size
 nrow(merged_data) # Should be 6,980
 
+length(merged_data$SEQN) 
+
 ```
 
 ### b. Without fitting any models, estimate the proportion of respondents within each 10-year age bracket (e.g. 0-9, 10-19, 20-29, etc) who wear glasses/contact lenses for distance vision. Produce a nice table with the results.
