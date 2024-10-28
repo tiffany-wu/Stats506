@@ -87,7 +87,7 @@ arrival_delay
 
 ### How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entires for the model, average speed (in MPH) and number of flights.
 
-Aircraft model 777-222, with the fastest average speek, made 1 flight.
+Aircraft model 777-222, with the fastest average speed, made 1 flight.
 
 # Q
 *CHECK-- JUST MADE 1 FLIGHT? DOES THIS SOUND RIGHT?*
@@ -322,7 +322,7 @@ Overall, more art of all genres seems to be getting sold from 1997-2012. However
 ```{r}
 # Get year and genre columns
 genre <- art %>%
-  select(year, starts_with("Genre")) %>%
+  dplyr::select(year, starts_with("Genre")) %>%
   # Get rid of the Genre___ start so we can just use the genre name for plot
   rename_with(~ gsub("Genre___", "", .), starts_with("Genre___"))
 
@@ -330,23 +330,47 @@ genre <- art %>%
 genre_long <- genre %>%
   pivot_longer(
     cols = -year,  # Exclude the 'year' column from pivoting
-    names_to = "genre",  # The new column that will hold genre names
-    values_to = "count"  # The new column that will hold the counts of each genre
+    names_to = "genre",  
+    values_to = "count" 
   )
 
-# Get counts for each genre for each year 
+# Get counts for each genre for each year
 genre_summary <- genre_long %>%
   group_by(year, genre) %>%
   summarize(total_sales = sum(count, na.rm = TRUE)) %>%
   ungroup() %>%
   mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Other")))
 
+
+# Factor so the bars will be ordered in ggplot
+genre_summary2 <- genre_summary %>%
+  group_by(year) %>%
+  mutate(genre = fct_reorder(genre, total_sales)) %>%
+  ungroup()
+
+# Plot the distribution of genres across years using a stacked bar plot
+ggplot(genre_summary2, aes(x = year, y = total_sales, fill = genre)) +
+  geom_bar(stat = "identity", position = "stack") +  
+  scale_x_continuous(breaks = seq(min(genre_summary$year), max(genre_summary$year), by = 2)) +  # 2-year increments
+  labs(
+    title = "Distribution of Genre of Sales Across Years",
+    x = "Year",
+    y = "Total Sales",
+    fill = "Genre"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    text = element_text(size = 12),
+    legend.position = "bottom"
+  )
+
 # Plot the distribution of genres across years using a line plot
 ggplot(genre_summary, aes(x = year, y = total_sales, color = genre)) +
   geom_line(size = 1) +  # Line plot for each genre
   scale_x_continuous(breaks = seq(min(art_summary$year), max(art_summary$year), by = 2)) +  # 2-year increments
   labs(
-    title = "Distribution of Genre of Sales Across Years",
+    title = "Genre of Sales Across Years",
     x = "Year",
     y = "Total Sales",
     color = "Genre"
@@ -358,6 +382,8 @@ ggplot(genre_summary, aes(x = year, y = total_sales, color = genre)) +
     legend.position = "bottom"
   )
 
+
+
 ```
 
 
@@ -366,12 +392,14 @@ ggplot(genre_summary, aes(x = year, y = total_sales, color = genre)) +
 # Q
 *OTHERS category is used with other genres??? Don't include it for now if another genre was also checked...*
 
+*SHOULD SHOW YOU KNOW HOW TO MAKE OTHER GRAPHS?*
+
 Photography art sales seems to sell for the highest prices, especially in years closest to 2012-- they have the biggest increase in mean and median art sale prices, as seen in the graphs below. This is followed by print sales, which seem to oscillate a lot more, painting, and sculpture. The latter three have a mean price of around 20000 dollars in 2012 while photography's mean is over 40000 dollars.
 
 ```{r}
 # Get df for year, genre, and prices
 sales_summary <- art %>%
-  select(year, price_usd, starts_with("Genre")) %>%
+  dplyr::select(year, price_usd, starts_with("Genre")) %>%
   # Get rid of the Genre___ start so we can just use the genre name for plot
   rename_with(~ gsub("Genre___", "", .), starts_with("Genre___")) %>%
   mutate(genre = case_when(Photography == 1 ~ "Photography",
