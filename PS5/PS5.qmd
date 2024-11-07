@@ -12,7 +12,7 @@ mainfont: Times New Roman
 ---
 
 ## Github Repo Link to Problem Set 5:
-[https://github.com/tiffany-wu/Stats506/tree/main/PS4](https://github.com/tiffany-wu/Stats506/tree/main/PS5) 
+[https://github.com/tiffany-wu/Stats506/tree/main/PS5](https://github.com/tiffany-wu/Stats506/tree/main/PS5) 
 
 ## Problem 1 - OOP Programming
 
@@ -129,204 +129,6 @@ setMethod("/", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
 
 ```
 
-```{r}
-# Load Rcpp for GCD and LCM functions
-library(Rcpp)
-
-# Define GCD function in R
-gcd <- function(a, b) {
-  while (b != 0) {
-    temp <- b
-    b <- a %% b
-    a <- temp
-  }
-  abs(a)
-}
-
-# Define LCM function in R
-lcm <- function(a, b) {
-  abs(a * b) / gcd(a, b)
-}
-
-# Define the S4 class without a validity argument
-setClass("Rational",
-         slots = c(numerator = "numeric", denominator = "numeric"),
-         prototype = list(numerator = 0, denominator = 1)
-)
-
-# Define the validity function separately
-setValidity("Rational", function(object) {
-  if (object@denominator == 0) {
-    return("Denominator cannot be zero.")
-  }
-  TRUE
-})
-
-# Simplify method (internal use within constructor)
-simplify_fraction <- function(numerator, denominator) {
-  divisor <- gcd(numerator, denominator)
-  numerator <- numerator / divisor
-  denominator <- denominator / divisor
-  list(numerator = numerator, denominator = denominator)
-}
-
-# Constructor with automatic simplification
-Rational <- function(numerator, denominator = 1) {
-  if (denominator == 0) stop("Denominator cannot be zero.")
-  simplified <- simplify_fraction(numerator, denominator)
-  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
-}
-
-# Show method
-setMethod("show", "Rational", function(object) {
-  cat(object@numerator, "/", object@denominator, "\n")
-})
-
-# Simplify method for external use
-setGeneric("simplify", function(object) standardGeneric("simplify"))
-setMethod("simplify", "Rational", function(object) {
-  simplified <- simplify_fraction(object@numerator, object@denominator)
-  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
-})
-
-# Quotient method
-setGeneric("quotient", function(object, digits = NULL) standardGeneric("quotient"))
-setMethod("quotient", "Rational", function(object, digits = NULL) {
-  result <- object@numerator / object@denominator
-  if (!is.null(digits) && is.numeric(digits)) {
-    print(round(result, digits))
-  } else {
-    print(result)
-  }
-  invisible(result)
-})
-
-# Addition
-setMethod("+", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  lcm_den <- lcm(e1@denominator, e2@denominator)
-  numerator <- e1@numerator * (lcm_den / e1@denominator) + e2@numerator * (lcm_den / e2@denominator)
-  Rational(numerator, lcm_den)  # Automatically simplifies
-})
-
-# Subtraction
-setMethod("-", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  lcm_den <- lcm(e1@denominator, e2@denominator)
-  numerator <- e1@numerator * (lcm_den / e1@denominator) - e2@numerator * (lcm_den / e2@denominator)
-  Rational(numerator, lcm_den)  # Automatically simplifies
-})
-
-# Multiplication
-setMethod("*", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  Rational(e1@numerator * e2@numerator, e1@denominator * e2@denominator)  # Automatically simplifies
-})
-
-# Division
-setMethod("/", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  if (e2@numerator == 0) stop("Cannot divide by a rational number with zero numerator.")
-  Rational(e1@numerator * e2@denominator, e1@denominator * e2@numerator)  # Automatically simplifies
-})
-
-# Testing the objects
-r1 <- Rational(24, 6)    # This should simplify to 4/1
-r2 <- Rational(7, 230)   # This will stay as 7/230
-r3 <- Rational(0, 4)     # This should simplify to 0/1
-
-# Display the results
-r1  # Expected output: 4/1
-r2  # Expected output: 7/230
-r3  # Expected output: 0/1
-
-
-# Define the S4 class without a validity argument
-setClass("Rational",
-         slots = c(numerator = "numeric", denominator = "numeric"),
-         prototype = list(numerator = 0, denominator = 1)
-)
-
-# Define the validity function separately
-setValidity("Rational", function(object) {
-  if (object@denominator == 0) {
-    return("Denominator cannot be zero.")
-  }
-  TRUE
-})
-
-# Simplify method (internal use within constructor)
-simplify_fraction <- function(numerator, denominator) {
-  divisor <- gcd(numerator, denominator)
-  numerator <- numerator / divisor
-  denominator <- denominator / divisor
-  list(numerator = numerator, denominator = denominator)
-}
-
-# Constructor with automatic simplification
-Rational <- function(numerator, denominator = 1) {
-  if (denominator == 0) stop("Denominator cannot be zero.")
-  simplified <- simplify_fraction(numerator, denominator)
-  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
-}
-
-# Show method
-setMethod("show", "Rational", function(object) {
-  cat(object@numerator, "/", object@denominator, "\n")
-})
-
-# Simplify method for external use
-setGeneric("simplify", function(object) standardGeneric("simplify"))
-setMethod("simplify", "Rational", function(object) {
-  simplified <- simplify_fraction(object@numerator, object@denominator)
-  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
-})
-
-# Quotient method
-setGeneric("quotient", function(object, digits = NULL) standardGeneric("quotient"))
-setMethod("quotient", "Rational", function(object, digits = NULL) {
-  result <- object@numerator / object@denominator
-  if (!is.null(digits) && is.numeric(digits)) {
-    print(round(result, digits))
-  } else {
-    print(result)
-  }
-  invisible(result)
-})
-
-# Addition
-setMethod("+", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  lcm_den <- lcm(as.integer(e1@denominator), as.integer(e2@denominator))
-  numerator <- e1@numerator * (lcm_den / e1@denominator) + e2@numerator * (lcm_den / e2@denominator)
-  Rational(numerator, lcm_den)  # Automatically simplifies
-})
-
-# Subtraction
-setMethod("-", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  lcm_den <- lcm(as.integer(e1@denominator), as.integer(e2@denominator))
-  numerator <- e1@numerator * (lcm_den / e1@denominator) - e2@numerator * (lcm_den / e2@denominator)
-  Rational(numerator, lcm_den)  # Automatically simplifies
-})
-
-# Multiplication
-setMethod("*", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  Rational(e1@numerator * e2@numerator, e1@denominator * e2@denominator)  # Automatically simplifies
-})
-
-# Division
-setMethod("/", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
-  if (e2@numerator == 0) stop("Cannot divide by a rational number with zero numerator.")
-  Rational(e1@numerator * e2@denominator, e1@denominator * e2@numerator)  # Automatically simplifies
-})
-
-# Testing the objects
-r1 <- Rational(24, 6)    # This should simplify to 4/1
-r2 <- Rational(7, 230)   # This will stay as 7/230
-r3 <- Rational(0, 4)     # This should simplify to 0/1
-
-# Display the results
-r1  # Expected output: 4/1
-r2  # Expected output: 7/230
-r3  # Expected output: 0/1
-
-```
-
 
 ### b. Use your rational class to create three objects:
 
@@ -394,12 +196,217 @@ You may not use any existing R functions or packages that would trivialize this 
 Hint: It may be useful to define other functions that I don’t explicitly ask for.
 
 
+##Problem 2 - plotly
+
+Let’s revisit the art data from the last problem set. Use plotly for these.
+
+```{r}
+library(plotly)
+
+# Load art sales df
+art <- read.csv("df_for_ml_improved_new_market.csv")
+```
+
+### a. Regenerate your plot which addresses the second question from last time:
+
+#### ii. Does the distribution of genre of sales across years appear to change?
+You may copy your plot from last time, or copy my plot from the solutions, or come up with your own new plot.
+
+```{r}
+library(tidyverse)
+
+# Get year and genre columns, clean up column names, and process two+ genres
+genre <- art %>%
+  dplyr::select(year, starts_with("Genre")) %>%
+  rename_with(~ gsub("Genre___", "", .), starts_with("Genre___")) %>%
+  mutate(two_plus = rowSums(select(., Photography, Print, Sculpture, Painting, Others), na.rm = TRUE)) %>%
+  mutate("Two+ Genres" = ifelse(two_plus > 1, 1, 0)) %>%
+  select(-two_plus)
+
+# Reshape to long format
+genre_long <- genre %>%
+  pivot_longer(
+    cols = -year,  
+    names_to = "genre",  
+    values_to = "count"
+  )
+
+# Summarize total sales for each genre per year
+genre_summary <- genre_long %>%
+  group_by(year, genre) %>%
+  summarize(total_sales = sum(count, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Others", "Two+ Genres")))
+
+# Interactive stacked bar chart using Plotly
+plot_genre_distribution <- plot_ly(
+  data = genre_summary,
+  x = ~year,
+  y = ~total_sales,
+  color = ~genre,
+  type = "bar",
+  colors = "Set3"
+) %>%
+  layout(
+    title = "Distribution of Genre of Sales Across Years",
+    xaxis = list(title = "Year"),
+    yaxis = list(title = "Total Sales"),
+    barmode = "stack"
+  )
+
+plot_genre_distribution
+```
+
+
+### b. Generate an interactive plot with plotly that can address both of these questions from last time:
+
+### i. Is there a change in the sales price in USD over time?
+
+### ii. How does the genre affect the change in sales price over time?
+
+This should be a single interactive plot, with which a user can manipulate the view to be able to look at change over time overall, or by genre.
+
+```{r}
+# Calculate average sales price per genre per year
+price_trend <- art %>%
+  dplyr::select(year, price_usd, starts_with("Genre")) %>%
+  # Get rid of the Genre___ start so we can just use the genre name for plot
+  rename_with(~ gsub("Genre___", "", .), starts_with("Genre___")) %>%
+  mutate(genre = case_when(Photography == 1 ~ "Photography",
+                           Print == 1 ~ "Print",
+                           Sculpture == 1 ~ "Sculpture",
+                           Painting == 1 ~ "Painting",
+                           Others == 1 ~ "Other")) %>%
+  group_by(year, genre) %>%
+  summarize(
+    mean_price = mean(price_usd, na.rm = TRUE),
+    median_price = median(price_usd, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Other")))
+
+
+# Create an interactive plotly plot with both mean and median prices
+plot <- plot_ly(data = price_trend) %>%
+  add_trace(
+    x = ~year, y = ~mean_price, color = ~genre, 
+    type = 'scatter', mode = 'lines+markers',
+    name = ~paste("Mean Price -", genre),
+    line = list(dash = 'solid')
+  ) %>%
+  add_trace(
+    x = ~year, y = ~median_price, color = ~genre, 
+    type = 'scatter', mode = 'lines+markers',
+    name = ~paste("Median Price -", genre),
+    line = list(dash = 'dash')
+  ) %>%
+  layout(
+    title = "Sales Price Over Time by Genre (Mean and Median)",
+    xaxis = list(title = "Year"),
+    yaxis = list(title = "Sales Price (USD)"),
+    hovermode = "closest",
+    legend = list(orientation = "h", y = -0.3)
+  )
+
+plot
+```
+
+
+These will be graded similar to last time:
+
+Is the type of graph & choice of variables appropriate to answer the question?
+Is the graph clear and easy to interpret?
+Is the graph publication ready?
+
+## Problem 3 - data.table
+Repeat Problem 1 from PS04 using data.table.
+
+```{r}
+library(data.table)
+library(nycflights13)
+```
+
+
+### a. Generate a table (which can just be a nicely printed tibble) reporting the mean and median departure delay per airport. Generate a second table (which again can be a nicely printed tibble) reporting the mean and median arrival delay per airport. Exclude any destination with under 10 flights. Do this exclusion through code, not manually.
+
+Additionally,
+
+Order both tables in descending mean delay.
+Both tables should use the airport names not the airport codes.
+Both tables should print all rows.
+
+```{r}
+# Departures delay
+flights <- data.table(flights)
+setDT(flights)
+flights[, faa := dest]
+```
+
+```{r}
+merged <- merge(flights[, faa := origin],
+                airports,
+                by = "faa",
+                all.x = TRUE)
+```
+
+```{r}
+merged[, .(N = .N,
+           mean_delay = mean(dep_delay, na.rm = TRUE),
+           median_delay = median(dep_delay, na.rm = TRUE)),
+       by = name] |>
+  _[N >= 10, !"N"] |>
+  _[order(mean_delay, decreasing = TRUE)]
+```
+
+```{r}
+# Departures delay
+flights <- data.table(flights)
+setDT(flights)
+setDT(airports)
+flights[, faa := dest]
+
+# Arrival delay
+merged <- merge(flights[, faa := dest],
+                airports,
+                by = "faa",
+                all.x = TRUE)
+```
+
+```{r}
+merged[, .(name = ifelse(is.na(first(name)), first(faa), first(name)),
+           N = .N,
+           mean_delay = mean(arr_delay, na.rm = TRUE),
+           median_delay = median(arr_delay, na.rm = TRUE)),
+       by = faa] |>
+  _[N >= 10, !c("faa", "N")] |>
+  _[order(mean_delay, decreasing = TRUE)] |>
+  print(x = _, nrows = 10000)
+```
 
 
 
+### b. How many flights did the aircraft model with the fastest average speed take? Produce a tibble with 1 row, and entires for the model, average speed (in MPH) and number of flights.
+
+```{r}
+planes <- data.table(planes)
+setDT(planes)
+```
 
 
+```{r}
+merged <- merge(flights,
+                planes,
+                by = "tailnum",
+                all.x = TRUE)
+```
 
+```{r}
+allmodels <- merged[, `:=`(num_flights = .N,
+                           avg_mph = mean(distance/(air_time/60), na.rm = TRUE)),
+                    by = model]
+
+allmodels[allmodels[, .I[which.max(avg_mph)]],.(model, avg_mph, num_flights)]
+```
 
 
 
