@@ -1,0 +1,408 @@
+---
+title: "Problem Set 5"
+author: "Tiffany Wu"
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+output: html_document
+editor: source
+mainfont: Times New Roman
+---
+
+## Github Repo Link to Problem Set 5:
+[https://github.com/tiffany-wu/Stats506/tree/main/PS4](https://github.com/tiffany-wu/Stats506/tree/main/PS5) 
+
+## Problem 1 - OOP Programming
+
+Create a class to represent rational numbers. Do this using S4.
+
+### a. For the rational class, define the following:
+
+1. A constructor
+2.A validator that ensures the denominator is non-zero.
+3.A show method.
+4.A simplify method, to obtain the simplest form (e.g. simplify(2/4) produces 1/2).
+5.A quotient method (e.g. quotient(3/7) produces .42857143...). It should support a digits argument but only in the printing, not the returned result (Hint: what does print return?).
+6.Addition, subtraction, multiplication, division. These should all return a rational.
+*7.You’ll (probably) need GCD and LCM as part of some of these calculations; include these functions using Rcpp. Even if you don’t need these functions for another calculation, include them.*
+#### RCCP METHOD NOT WORKING? BUT CAN WORK IF I DEFINE THE FUNCTION OUTSIDE cppFunction
+
+```{r, error = TRUE}
+# Set up rational class
+
+# Load Rcpp for GCD and LCM functions
+library(Rcpp)
+
+# Define GCD and LCM functions in C++
+cppFunction("
+int C_gcd(int x, int y) {
+  return std::gcd(x, y);
+}
+
+int C_lcm(int x, int y) {
+  return abs(x * y) / C_gcd(x, y);
+}
+")
+
+
+# Define the S4 class
+setClass("Rational",
+         slots = c(numerator = "numeric", denominator = "numeric"),
+         prototype = list(numerator = 0, denominator = 1)
+)
+
+# Validity
+setValidity("Rational", function(object) {
+  if (object@denominator == 0) {
+    return("Denominator cannot be zero.")
+  }
+  TRUE
+})
+
+# Simplify method (internal use within constructor)
+simplify_fraction <- function(numerator, denominator) {
+  divisor <- gcd(numerator, denominator)
+  numerator <- numerator / divisor
+  denominator <- denominator / divisor
+  list(numerator = numerator, denominator = denominator)
+}
+
+# Constructor
+Rational <- function(numerator, denominator = 1) {
+  if (denominator == 0) {
+    stop("Error: Denominator cannot be zero.")
+  }
+  obj <- new("Rational", numerator = numerator, denominator = denominator)
+  obj  # Return the valid object
+}
+
+# Show method
+setMethod("show", "Rational", function(object) {
+  cat(object@numerator, "/", object@denominator, "\n")
+})
+
+# Simplify method for external use
+setGeneric("simplify", function(object) standardGeneric("simplify"))
+setMethod("simplify", "Rational", function(object) {
+  simplified <- simplify_fraction(object@numerator, object@denominator)
+  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
+})
+
+# Quotient method
+setGeneric("quotient", function(object, digits = NULL) standardGeneric("quotient"))
+setMethod("quotient", "Rational", function(object, digits = NULL) {
+  result <- object@numerator / object@denominator
+  if (!is.null(digits) && is.numeric(digits)) {
+    print(round(result, digits))
+  } else {
+    print(result)
+  }
+  invisible(result)
+})
+
+# Addition
+setMethod("+", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  lcm_den <- lcm(e1@denominator, e2@denominator)
+  numerator <- e1@numerator * (lcm_den / e1@denominator) + e2@numerator * (lcm_den / e2@denominator)
+  Rational(numerator, lcm_den)  # Automatically simplifies
+})
+
+# Subtraction
+setMethod("-", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  lcm_den <- lcm(e1@denominator, e2@denominator)
+  numerator <- e1@numerator * (lcm_den / e1@denominator) - e2@numerator * (lcm_den / e2@denominator)
+  Rational(numerator, lcm_den)  # Automatically simplifies
+})
+
+# Multiplication
+setMethod("*", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  Rational(e1@numerator * e2@numerator, e1@denominator * e2@denominator)  # Automatically simplifies
+})
+
+# Division
+setMethod("/", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  if (e2@numerator == 0) stop("Cannot divide by a rational number with zero numerator.")
+  Rational(e1@numerator * e2@denominator, e1@denominator * e2@numerator)  # Automatically simplifies
+})
+
+```
+
+```{r}
+# Load Rcpp for GCD and LCM functions
+library(Rcpp)
+
+# Define GCD function in R
+gcd <- function(a, b) {
+  while (b != 0) {
+    temp <- b
+    b <- a %% b
+    a <- temp
+  }
+  abs(a)
+}
+
+# Define LCM function in R
+lcm <- function(a, b) {
+  abs(a * b) / gcd(a, b)
+}
+
+# Define the S4 class without a validity argument
+setClass("Rational",
+         slots = c(numerator = "numeric", denominator = "numeric"),
+         prototype = list(numerator = 0, denominator = 1)
+)
+
+# Define the validity function separately
+setValidity("Rational", function(object) {
+  if (object@denominator == 0) {
+    return("Denominator cannot be zero.")
+  }
+  TRUE
+})
+
+# Simplify method (internal use within constructor)
+simplify_fraction <- function(numerator, denominator) {
+  divisor <- gcd(numerator, denominator)
+  numerator <- numerator / divisor
+  denominator <- denominator / divisor
+  list(numerator = numerator, denominator = denominator)
+}
+
+# Constructor with automatic simplification
+Rational <- function(numerator, denominator = 1) {
+  if (denominator == 0) stop("Denominator cannot be zero.")
+  simplified <- simplify_fraction(numerator, denominator)
+  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
+}
+
+# Show method
+setMethod("show", "Rational", function(object) {
+  cat(object@numerator, "/", object@denominator, "\n")
+})
+
+# Simplify method for external use
+setGeneric("simplify", function(object) standardGeneric("simplify"))
+setMethod("simplify", "Rational", function(object) {
+  simplified <- simplify_fraction(object@numerator, object@denominator)
+  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
+})
+
+# Quotient method
+setGeneric("quotient", function(object, digits = NULL) standardGeneric("quotient"))
+setMethod("quotient", "Rational", function(object, digits = NULL) {
+  result <- object@numerator / object@denominator
+  if (!is.null(digits) && is.numeric(digits)) {
+    print(round(result, digits))
+  } else {
+    print(result)
+  }
+  invisible(result)
+})
+
+# Addition
+setMethod("+", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  lcm_den <- lcm(e1@denominator, e2@denominator)
+  numerator <- e1@numerator * (lcm_den / e1@denominator) + e2@numerator * (lcm_den / e2@denominator)
+  Rational(numerator, lcm_den)  # Automatically simplifies
+})
+
+# Subtraction
+setMethod("-", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  lcm_den <- lcm(e1@denominator, e2@denominator)
+  numerator <- e1@numerator * (lcm_den / e1@denominator) - e2@numerator * (lcm_den / e2@denominator)
+  Rational(numerator, lcm_den)  # Automatically simplifies
+})
+
+# Multiplication
+setMethod("*", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  Rational(e1@numerator * e2@numerator, e1@denominator * e2@denominator)  # Automatically simplifies
+})
+
+# Division
+setMethod("/", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  if (e2@numerator == 0) stop("Cannot divide by a rational number with zero numerator.")
+  Rational(e1@numerator * e2@denominator, e1@denominator * e2@numerator)  # Automatically simplifies
+})
+
+# Testing the objects
+r1 <- Rational(24, 6)    # This should simplify to 4/1
+r2 <- Rational(7, 230)   # This will stay as 7/230
+r3 <- Rational(0, 4)     # This should simplify to 0/1
+
+# Display the results
+r1  # Expected output: 4/1
+r2  # Expected output: 7/230
+r3  # Expected output: 0/1
+
+
+# Define the S4 class without a validity argument
+setClass("Rational",
+         slots = c(numerator = "numeric", denominator = "numeric"),
+         prototype = list(numerator = 0, denominator = 1)
+)
+
+# Define the validity function separately
+setValidity("Rational", function(object) {
+  if (object@denominator == 0) {
+    return("Denominator cannot be zero.")
+  }
+  TRUE
+})
+
+# Simplify method (internal use within constructor)
+simplify_fraction <- function(numerator, denominator) {
+  divisor <- gcd(numerator, denominator)
+  numerator <- numerator / divisor
+  denominator <- denominator / divisor
+  list(numerator = numerator, denominator = denominator)
+}
+
+# Constructor with automatic simplification
+Rational <- function(numerator, denominator = 1) {
+  if (denominator == 0) stop("Denominator cannot be zero.")
+  simplified <- simplify_fraction(numerator, denominator)
+  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
+}
+
+# Show method
+setMethod("show", "Rational", function(object) {
+  cat(object@numerator, "/", object@denominator, "\n")
+})
+
+# Simplify method for external use
+setGeneric("simplify", function(object) standardGeneric("simplify"))
+setMethod("simplify", "Rational", function(object) {
+  simplified <- simplify_fraction(object@numerator, object@denominator)
+  new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
+})
+
+# Quotient method
+setGeneric("quotient", function(object, digits = NULL) standardGeneric("quotient"))
+setMethod("quotient", "Rational", function(object, digits = NULL) {
+  result <- object@numerator / object@denominator
+  if (!is.null(digits) && is.numeric(digits)) {
+    print(round(result, digits))
+  } else {
+    print(result)
+  }
+  invisible(result)
+})
+
+# Addition
+setMethod("+", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  lcm_den <- lcm(as.integer(e1@denominator), as.integer(e2@denominator))
+  numerator <- e1@numerator * (lcm_den / e1@denominator) + e2@numerator * (lcm_den / e2@denominator)
+  Rational(numerator, lcm_den)  # Automatically simplifies
+})
+
+# Subtraction
+setMethod("-", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  lcm_den <- lcm(as.integer(e1@denominator), as.integer(e2@denominator))
+  numerator <- e1@numerator * (lcm_den / e1@denominator) - e2@numerator * (lcm_den / e2@denominator)
+  Rational(numerator, lcm_den)  # Automatically simplifies
+})
+
+# Multiplication
+setMethod("*", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  Rational(e1@numerator * e2@numerator, e1@denominator * e2@denominator)  # Automatically simplifies
+})
+
+# Division
+setMethod("/", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
+  if (e2@numerator == 0) stop("Cannot divide by a rational number with zero numerator.")
+  Rational(e1@numerator * e2@denominator, e1@denominator * e2@numerator)  # Automatically simplifies
+})
+
+# Testing the objects
+r1 <- Rational(24, 6)    # This should simplify to 4/1
+r2 <- Rational(7, 230)   # This will stay as 7/230
+r3 <- Rational(0, 4)     # This should simplify to 0/1
+
+# Display the results
+r1  # Expected output: 4/1
+r2  # Expected output: 7/230
+r3  # Expected output: 0/1
+
+```
+
+
+### b. Use your rational class to create three objects:
+
+r1: 24/6
+ 
+r2: 7/230
+ 
+r3: 0/4
+
+```{r}
+# Creating objects
+r1 <- Rational(24, 6)    # This should simplify to 4/1
+r2 <- Rational(7, 230)   # This will stay as 7/230
+r3 <- Rational(0, 4)     # This should simplify to 0/1
+
+r1 # 4/1
+r2 # 7/230
+r3 #0/1
+
+```
+
+ 
+Evaluate the following code (remember you can tell Quarto not to stop on errors):
+
+```{r, error = TRUE}
+r1
+r3
+r1 + r2
+r1 - r2
+r1 * r2
+r1 / r2
+r1 + r3
+r1 * r3
+r2 / r3
+quotient(r1)
+quotient(r2)
+quotient(r2, digits = 3)
+quotient(r2, digits = 3.14)
+quotient(r2, digits = "avocado")
+q2 <- quotient(r2, digits = 3)
+q2
+quotient(r3)
+simplify(r1)
+simplify(r2)
+simplify(r3)
+```
+
+
+Show that your validator does not allow the creation of rational’s with 0 denominator, and check other malformed input to your constructor.
+```{r, error = TRUE}
+# Testing the validator for Rational objects with invalid inputs -- should all error
+Rational(1, 0)
+Rational("a", 2)
+Rational(1, "b")
+Rational("a", "b")
+```
+
+
+Note that there are a lot of choices to be made here. How are you going to store the class? Two numerics? A vector of length two? A formula? A string? What are users going to pass into the constructor? A string (“24/6”)? Two arguments? A vector?
+
+There is no right answer to those questions. Make the best decision you can, and don’t be afraid to change it if your decision causes unforeseen difficulties.
+
+You may not use any existing R functions or packages that would trivialize this assignment. (E.g. if you found an existing package that does this, or found a function that automatically produces the quotient or simplified version, that is not able to be used.)
+
+Hint: It may be useful to define other functions that I don’t explicitly ask for.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
