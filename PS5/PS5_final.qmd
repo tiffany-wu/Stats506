@@ -21,12 +21,19 @@ Create a class to represent rational numbers. Do this using S4.
 ### a. For the rational class, define the following:
 
 1. A constructor
+
 2.A validator that ensures the denominator is non-zero.
+
 3.A show method.
+
 4.A simplify method, to obtain the simplest form (e.g. simplify(2/4) produces 1/2).
+
 5.A quotient method (e.g. quotient(3/7) produces .42857143...). It should support a digits argument but only in the printing, not the returned result (Hint: what does print return?).
+
 6.Addition, subtraction, multiplication, division. These should all return a rational.
-*7.You’ll (probably) need GCD and LCM as part of some of these calculations; include these functions using Rcpp. Even if you don’t need these functions for another calculation, include them.*
+
+7.You’ll (probably) need GCD and LCM as part of some of these calculations; include these functions using Rcpp. Even if you don’t need these functions for another calculation, include them.
+
 ```{r}
 rm(list=ls()) 
 ```
@@ -204,7 +211,7 @@ You may not use any existing R functions or packages that would trivialize this 
 Hint: It may be useful to define other functions that I don’t explicitly ask for.
 
 
-##Problem 2 - plotly
+## Problem 2 - plotly
 
 Let’s revisit the art data from the last problem set. Use plotly for these.
 
@@ -275,16 +282,22 @@ plot_genre_distribution
 This should be a single interactive plot, with which a user can manipulate the view to be able to look at change over time overall, or by genre.
 
 ```{r}
+# Define a consistent color palette for genres -- otherwise it's hard to get the mean and median lines the same color
+genre_colors <- c("Photography" = "#1f77b4", "Print" = "#ff7f0e", 
+                  "Sculpture" = "#2ca02c", "Painting" = "#d62728", 
+                  "Other" = "#9467bd")
+
 # Calculate average sales price per genre per year
 price_trend <- art %>%
   dplyr::select(year, price_usd, starts_with("Genre")) %>%
-  # Get rid of the Genre___ start so we can just use the genre name for plot
   rename_with(~ gsub("Genre___", "", .), starts_with("Genre___")) %>%
-  mutate(genre = case_when(Photography == 1 ~ "Photography",
-                           Print == 1 ~ "Print",
-                           Sculpture == 1 ~ "Sculpture",
-                           Painting == 1 ~ "Painting",
-                           Others == 1 ~ "Other")) %>%
+  mutate(genre = case_when(
+    Photography == 1 ~ "Photography",
+    Print == 1 ~ "Print",
+    Sculpture == 1 ~ "Sculpture",
+    Painting == 1 ~ "Painting",
+    Others == 1 ~ "Other"
+  )) %>%
   group_by(year, genre) %>%
   summarize(
     mean_price = mean(price_usd, na.rm = TRUE),
@@ -293,30 +306,84 @@ price_trend <- art %>%
   ungroup() %>%
   mutate(genre = factor(genre, levels = c("Photography", "Print", "Sculpture", "Painting", "Other")))
 
+# Initialize the plot
+plot <- plot_ly()
 
-# Create an interactive plotly plot with both mean and median prices
-plot <- plot_ly(data = price_trend) %>%
-  add_trace(
-    x = ~year, y = ~mean_price, color = ~genre, 
-    type = 'scatter', mode = 'lines+markers',
-    name = ~paste("Mean Price -", genre),
-    line = list(dash = 'solid')
-  ) %>%
-  add_trace(
-    x = ~year, y = ~median_price, color = ~genre, 
-    type = 'scatter', mode = 'lines+markers',
-    name = ~paste("Median Price -", genre),
-    line = list(dash = 'dash')
-  ) %>%
+# Add traces for each genre with consistent colors
+for (g in levels(price_trend$genre)) {
+  plot <- plot %>%
+    add_trace(
+      data = subset(price_trend, genre == g),
+      x = ~year, y = ~mean_price,
+      type = 'scatter', mode = 'lines+markers',
+      name = paste(g, "- Mean"),
+      visible = TRUE,   # Set to TRUE for "All Genres" button to display all initially
+      line = list(dash = 'solid', color = genre_colors[[g]]),  # Set consistent color for mean
+      marker = list(color = genre_colors[[g]])
+    ) %>%
+    add_trace(
+      data = subset(price_trend, genre == g),
+      x = ~year, y = ~median_price,
+      type = 'scatter', mode = 'lines+markers',
+      name = paste(g, "- Median"),
+      visible = TRUE,   # Set to TRUE for "All Genres" button to display all initially
+      line = list(dash = 'dash', color = genre_colors[[g]]),   # Set consistent color for median
+      marker = list(color = genre_colors[[g]])
+    )
+}
+
+# Define visibility settings for each genre button
+num_genres <- length(levels(price_trend$genre))
+visibility_settings <- lapply(1:num_genres, function(i) {
+  rep(FALSE, num_genres * 2) %>%
+    replace((i * 2 - 1):(i * 2), TRUE)
+})
+
+# Add visibility setting for the "All Genres" button to show all traces
+visibility_all <- rep(TRUE, num_genres * 2)
+
+# Define the buttons for each genre and "All Genres"
+buttons <- list(
+  list(
+    method = "update",
+    args = list(list(visible = visibility_all), list(title = "Sales Price Over Time by Genre (Mean and Median)")),
+    label = "All Genres"
+  )
+)
+
+# Add each genre-specific button to the buttons list
+for (i in seq_along(levels(price_trend$genre))) {
+  genre_name <- levels(price_trend$genre)[i]
+  buttons <- append(buttons, list(
+    list(
+      method = "update",
+      args = list(list(visible = visibility_settings[[i]]), list(title = paste("Sales Price -", genre_name))),
+      label = genre_name
+    )
+  ))
+}
+
+# Set up the layout with the updated buttons
+plot <- plot %>%
   layout(
     title = "Sales Price Over Time by Genre (Mean and Median)",
     xaxis = list(title = "Year"),
     yaxis = list(title = "Sales Price (USD)"),
     hovermode = "closest",
-    legend = list(orientation = "h", y = -0.3)
+    legend = list(orientation = "h", y = -0.3),
+    updatemenus = list(
+      list(
+        type = "buttons",
+        direction = "right",
+        x = 0.8, y = 2.15,
+        buttons = buttons
+      )
+    )
   )
 
 plot
+
+
 ```
 
 
