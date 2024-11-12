@@ -1,0 +1,174 @@
+---
+title: "10.29.24 R OOP, Plotly, RCCP"
+format: html
+editor: visual
+---
+
+# 10.29.24 Class Notes
+
+Object oriented programming is a programming paradigm built around the notions of classes, methods, and, of course, objects. There are a wide variety of object oriented languages and R has (at least) three object oriented (OO) systems you should be aware of:
+
+S3 - R’s original, informal OOP system;
+* quick to write, but because not formalized can run into problems
+S4 - a more formal less flexible version of S3;
+* longer to write, but more structured and harder to break
+
+RC - a reference class OOP system that more closely resembles the paradigm used in languages like C++.
+R6 - An in-development replacement to S3/S4 that is being primarily developed by tidyverse authors.
+
+We will focus on the S3 and S4 systems which dominate in R.
+
+Before digging into R’s OO systems it will be helpful to define a few terms.
+
+*An object’s class defines its structure and behavior using attributes as well as its relationship with other classes.*
+
+* Methods are functions that have definitions which depend on the class of an object.
+
+Classes are often organized into hierarchies with “child” classes defined more strictly than its “parents”. Child classes often inherit from their parents meaning a parent’s structure or methods serve as a default when not explicitly defined for the child. More formally, these are known as superclasses and subclasses.
+
+```{r}
+class(1:4)
+```
+
+# S3
+
+summary -- same function, operates in different fashion
+```{r}
+summary(1:4)
+
+summary(matrix(1:10, nrow = 2))
+
+summary(lm(wt~., data = mtcars))
+```
+
+
+How does summary() know to act different depending on what's inside/for each new class?
+
+summary for integer vs. summary for matrix vs. summary for regression, etc...
+
+R (and most object-oriented languages) use generics and dispatching. Let’s look at the code for summary:
+function (object, ...) 
+*UseMethod("summary")* -- based on class, find the correct summary method
+<bytecode: 0x000002195b6a8a50>
+<environment: namespace:base>
+
+When *UseMethod()* is called R searches for an S3 method based on the name of the generic function and the class of its first argument. The specific function it looks for follows the naming pattern function.class() – this is why it is advisable not to use dots when naming functions, classes, or other objects. There are instead the functions summary.default() (for vectors), summary.matrix(), and summary.lm() - and if a new class type needs a summary function, you need only define summary.newclass(), rather than modify the existing summary functions.
+
+The *PERIOD* summaryDOT, etc. calls the S3 class. That's why you shouldn't name things with a period on your own.
+```{r}
+summary
+
+summary. # shows all the different summaries
+```
+
+What is .default? When an object has more than one class, R searches successively until a suitable method is found. If a suitable method is not found, S3 generics revert to a default method when defined and throw an error if not.
+
+```{r}
+summary.default
+```
+
+summary.default:
+function (object, ..., digits, quantile.type = 7) 
+
+If you want to make a 
+
+Need to have a class in S3 that is the name after the dot. You can just make new classes.
+
+```{r}
+# Make new class/change class for x. This is bad practice though because x already has a class that you are rewriting.
+x <- 1:5
+class(x) <- "myclass"
+
+# Preserve original class of y in addition to new class-- best practice
+y <- 5:10
+class(y)
+class(y) <- c("myclass2", class(y))
+
+# New summary function for class myclass
+summary.myclass <- function(object, ...){ # make sure it has same arguments
+cat("Inside summary.myclass\n")
+}
+
+summary(x)
+```
+
+
+# head.green example
+Store colors for each specific vector for future plotting so that each variable is assigned a certain color forever.
+```{r}
+x <- 1:10
+
+# How to attach color? Add attribute
+attr(x, "color") <- "green"
+
+class(x) <- c("colvec", class(x))
+
+
+# Make function to do this
+
+make_colvec <- function(input, color){
+  attr(input, "color") <- "color"
+  class(input) >- c("colvec", class(input))
+  return(input)
+}
+
+# "print" is a generic class
+print
+
+# All functions should have "..." so it can pass down to other calls
+print.colvec <- function(x, ...) {
+  #paste0 gets rid of spaces
+  cat(paste0(attr(x, "color"), ": ", print.default(x))) #ignore that x is color vector, just pring out default
+  cat(x)
+ # invisible(return(x))
+  invisible(return(NULL))
+}
+print(x)
+
+
+##' @title Head of a `green` object
+##' @param obj A `green` object
+head.green <- function(obj) {
+
+  # Check if its green
+  if ("green" %in% class(obj)) {
+    if (length(class(obj)) > 1) {
+      next_class <- class(obj)[-grep("green", class(obj))][1]
+      cat("This is a green ", next_class, ".\n", sep = "")
+
+      # This calls the next available method, allowing us to offload work in
+      # a method for the subclass to an existing method for the superclass.
+
+      NextMethod("head")
+
+    } else {
+      cat("This a generic green object.\n")
+    }
+  } else {
+    cat("The object is not green!\n")
+  }
+
+}
+```
+
+
+
+# S4
+
+The main input is usually called "S4" in setClass. numeric type. But can be double or integer too. It just has to contain numerics.
+```{r}
+setClass("color_vector",
+         slots = c(data = "numeric",
+                   color = "character"))
+```
+
+
+
+
+
+
+
+
+
+
+

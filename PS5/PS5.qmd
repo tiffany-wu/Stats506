@@ -26,17 +26,20 @@ Create a class to represent rational numbers. Do this using S4.
 4.A simplify method, to obtain the simplest form (e.g. simplify(2/4) produces 1/2).
 5.A quotient method (e.g. quotient(3/7) produces .42857143...). It should support a digits argument but only in the printing, not the returned result (Hint: what does print return?).
 6.Addition, subtraction, multiplication, division. These should all return a rational.
-*7.You’ll (probably) need GCD and LCM as part of some of these calculations; include these functions using Rcpp. Even if you don’t need these functions for another calculation, include them.*
-#### RCCP METHOD NOT WORKING? BUT CAN WORK IF I DEFINE THE FUNCTION OUTSIDE cppFunction
+7.You’ll (probably) need GCD and LCM as part of some of these calculations; include these functions using Rcpp. Even if you don’t need these functions for another calculation, include them.
+```{r}
+rm(list=ls()) 
+```
 
-```{r, error = TRUE}
-# Set up rational class
-
+```{r}
 # Load Rcpp for GCD and LCM functions
 library(Rcpp)
 
 # Define GCD and LCM functions in C++
 cppFunction("
+#include <cmath>       // Include cmath for abs function
+#include <numeric>     // Include numeric for std::gcd and std::lcm functions
+
 int C_gcd(int x, int y) {
   return std::gcd(x, y);
 }
@@ -45,7 +48,17 @@ int C_lcm(int x, int y) {
   return abs(x * y) / C_gcd(x, y);
 }
 ")
+```
 
+```{r}
+# Set up rational class
+
+# OLD: Define GCD and LCM functions in C++ -- from class notes
+#cppFunction("int C_gcd(int x, int y) {
+#  return std::gcd(x, y);
+#}
+#int C_lcm(int x, int y) {
+#  return abs(x * y) / C_gcd(x, y);}")
 
 # Define the S4 class
 setClass("Rational",
@@ -61,7 +74,7 @@ setValidity("Rational", function(object) {
   TRUE
 })
 
-# Simplify method (internal use within constructor)
+# Simplify method-- this is just for internal use within constructor to obtain the simplest form
 simplify_fraction <- function(numerator, denominator) {
   divisor <- gcd(numerator, denominator)
   numerator <- numerator / divisor
@@ -90,7 +103,7 @@ setMethod("simplify", "Rational", function(object) {
   new("Rational", numerator = simplified$numerator, denominator = simplified$denominator)
 })
 
-# Quotient method
+# Quotient
 setGeneric("quotient", function(object, digits = NULL) standardGeneric("quotient"))
 setMethod("quotient", "Rational", function(object, digits = NULL) {
   result <- object@numerator / object@denominator
@@ -126,7 +139,6 @@ setMethod("/", signature(e1 = "Rational", e2 = "Rational"), function(e1, e2) {
   if (e2@numerator == 0) stop("Cannot divide by a rational number with zero numerator.")
   Rational(e1@numerator * e2@denominator, e1@denominator * e2@numerator)  # Automatically simplifies
 })
-
 ```
 
 
