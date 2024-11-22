@@ -51,7 +51,6 @@ team_rf <- fielding2 %>%
   summarise(mean_RF = mean(RF, na.rm = TRUE)) %>%
   ungroup()
 
-team_rf
 ```
 
 Do this out three ways:
@@ -96,7 +95,7 @@ time_standard <- system.time({
 })
 
 time_standard
-results_standard
+# results_standard -- put all results in a table at the end
 ```
 
 #### 2. Using parallel processing with the parallel package.
@@ -139,11 +138,11 @@ time_parallel <- system.time({
   stopCluster(cl)
 })
 
-results_table <- bind_rows(results_parallel)
+results_table_parallel <- bind_rows(results_parallel)
 
 # Print the combined results table
-print(results_table)
-print(time_parallel)
+# print(results_table_parallel) put all results in table at the end
+print(time_parallel) 
 
 showConnections(all = TRUE) # Show all open connections
 closeAllConnections()       # Close all unused connections
@@ -165,8 +164,6 @@ set.seed(2111)
 # 3. Future Approach
 plan(multisession, workers = detectCores()-3) # Plan multisession for future
 
-
-
 # Split data by teamID for parallel processing
 split_data <- split(fielding2, fielding2$teamID)
 
@@ -184,24 +181,68 @@ time_future <- system.time({
 })
 
 # Combine all results into a single dataframe
-results_table <- bind_rows(results_future)
+results_table_futures <- bind_rows(results_future)
 
 # Print timing and results
 print(time_future)
-print(results_table)
-
-# Combine results into a single dataframe
-results_table <- bind_rows(results_future)
-
-# Print timing and results
-print(time_future)
-print(results_table)
-
+# print(results_table)
 ```
 
 Generate at least 1,000 bootstrapped samples for each approach.
 
-Generate a table showing the estimated RF and associated standard errors from the three approaches.
+### b. Generate a table showing the estimated RF and associated standard errors from the three approaches.
 
-Report and discuss the performance difference between the versions.
+Below we see the estimated RF and associated standard errors. While the estimated RFs were pretty much the same across all approaches, the standard errors were often different.
+
+## *WHY???????????????????????????????????? Did I do it wrong?*
+
+```{r}
+# Add a column to each dataframe to indicate the method used
+results_standard <- results_standard %>%
+  mutate(Method = "Standard")
+
+results_table_parallel <- results_table_parallel %>%
+  mutate(Method = "Parallel")
+
+results_table_futures <- results_table_futures %>%
+  mutate(Method = "Future")
+
+# Combine all results into one dataframe
+combined_results <- bind_rows(results_standard, results_table_parallel, results_table_futures)
+
+# Order
+combined_results <- combined_results %>%
+  rename(
+    `Estimated Mean RFs` = mean_RF,
+    `Est SEs` = SE_RF
+  ) %>%
+  arrange(teamID)
+
+# Print the combined results
+print(combined_results)
+
+```
+
+
+### c. Report and discuss the performance difference between the versions.
+
+In the below Timing Results table, we see the performance differences between the versions. The Standard approach took longer (295.23 seconds) because all computations were performed sequentially. As we talked about in class, this approach is not efficient for large datasets or when bootstrapping involves many iterations.
+
+The Parallel approach reduced the time to 66.23 seconds by leveraging multiple cores. With parLapply in the parallel package, tasks are distributed evenly at the start and run to completion. If one worker takes longer, other workers might sit idle. However, this is still quicker than performing the computations sequentially in the Standard approach.
+
+The Future approach was the fastest (16.65 seconds). The future package automatically schedules tasks dynamically. As soon as a worker finishes a task, it picks up the next one without waiting for other workers to finish. This minimizes idle time for workers and ensures efficient utilization of resources. Not to mention, it transfers only the necessary data to each worker for each task, which reduces the time spend on communication between the main R session and the worker nodes. By dynamically scheduling tasks across multiple cores with minimal data transfer overhead, it achieved superior scalability and efficiency.
+
+
+```{r}
+# Timing Results
+timing_results <- data.frame(
+  Approach = c("Standard", "Parallel", "Future"),
+  Elapsed_Time = c(time_standard["elapsed"], time_parallel["elapsed"], time_future["elapsed"])
+)
+
+# Print timing results
+print(timing_results)
+```
+
+
 
