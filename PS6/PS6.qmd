@@ -1,0 +1,207 @@
+---
+title: "PS6"
+format: html
+editor: visual
+---
+
+## Stratified Bootstrapping
+
+If a sample has a categorical variable with small groups, bootstrapping can be tricky. Consider a situation where n = 100, but there is some categorical variable g where category g = 1 has only 2 observations. In a single bootstrap resample of that data, there is a chance that the bootstrap sample does not include either observation from g = 1. This implies that if we are attempting to obtain a bootstrap estimate in group g = 1, 13% of the bootstrapped samples will have no observations from that group and thus unable to produce an estimate.
+
+A way around this is to carry out *stratified bootstrap*: Instead of taking a sample with replacement of the whole sample, take separate bootstrap resamples within each strata, then combine those resamples to generate the bootstrap sample.
+
+Use the “lahman” data that we first introduced in sql. In the statistical analysis of baseball statistics, one metric used to measure a players performance is their Range Factor:
+
+### a. Calculate the average RF for each team in the Fielding table. Then, since we don’t have a closed form for the standard deviation of this statistic, carry out a stratified bootstrap by team to estimate it. Do this out three ways:
+
+## *CHECK RF MULTIPLIED BY 3 NOT 9????*
+
+```{r}
+# Load necessary libraries
+library(DBI) # necessary evil. Holds SQL to R, handles backend so they can talk to each other
+library(RSQLite)
+library(tidyverse)
+library(parallel)
+library(future)
+
+lahman <- dbConnect(SQLite(), "lahman_1871-2022.sqlite")
+# Doesn't really read in data, just load in connection, unlike reading in a .csv.
+
+# What tables are available?
+dbListTables(lahman)
+
+# Find variables we need to calculate Range Factor
+dbListFields(lahman, "Fielding")
+
+# Extract Fielding table
+fielding <- dbReadTable(lahman, "Fielding")
+
+# Examine data
+psych::describe(fielding)
+
+# Compute equation (RF)
+fielding2 <- fielding %>%
+  mutate(RF = 3*(PO + A) / InnOuts) %>%
+  filter(InnOuts != 0) %>% # Denominator can't be 0
+  drop_na(RF) # There are some NAs
+
+# Calculate average RF per team
+team_rf <- fielding2 %>%
+  group_by(teamID) %>%
+  summarise(mean_RF = mean(RF, na.rm = TRUE)) %>%
+  ungroup()
+
+team_rf
+```
+
+Do this out three ways:
+
+#### 1. Without any parallel processing
+```{r}
+# Function for bootstrapping
+stratified_bootstrap <- function(data, group_col, value_col, n_bootstrap = 1000) {
+  bootstrap_results <- data %>%
+    # Group the data by teamID
+    group_by(!!sym(group_col)) %>%
+    summarise(
+      # !!sym(value_col) = RF from fielding2
+      mean_RF = mean(!!sym(value_col), na.rm = TRUE),
+      # Ensures the result is ungrouped after summarization
+      .groups = "drop"
+    )
+  
+  # Add a new column (SE_RF) to the results, which will store the standard error of the average RF for each group
+
+  bootstrap_results$SE_RF <- sapply(unique(data[[group_col]]), function(team) {
+    team_data <- data %>% filter(!!sym(group_col) == team)
+    
+    boot_means <- replicate(n_bootstrap, {
+      # Sample with replacement
+      sample_data <- team_data %>% sample_frac(replace = TRUE)
+      mean(sample_data[[value_col]], na.rm = TRUE)
+    })
+    
+    sd(boot_means, na.rm = TRUE)
+  })
+  
+  return(bootstrap_results)
+}
+
+# Set seed for reproducibility
+set.seed(2111)
+
+# 1. Standard Approach
+time_standard <- system.time({
+  results_standard <- stratified_bootstrap(fielding2, "teamID", "RF")
+})
+
+time_standard
+results_standard
+```
+
+#### 2. Using parallel processing with the parallel package.
+
+Use the parallel package to split the data by teamID and perform the bootstrap computation for each group in parallel across multiple cores.
+
+```{r}
+# Set seed for reproducibility
+set.seed(2111)
+
+# Parallel Approach
+time_parallel <- system.time({
+  
+  # Create cluster
+  cl <- makeCluster(detectCores() - 3)
+  
+  # Load necessary library on workers
+  clusterEvalQ(cl, library(dplyr))
+  
+  # Split data by teamID
+  split_data <- split(fielding2, fielding2$teamID) # Creates subsets for each teamID
+  
+  # Export required function and split data to the cluster
+  clusterExport(cl, varlist = c("split_data", "stratified_bootstrap", "fielding2"))
+
+  # Run the bootstrap for each team in parallel
+  results_parallel <- parLapply(cl, names(split_data), function(team) {
+    
+    # Extract the subset for the current team
+    team_data <- split_data[[team]]
+
+    # Perform bootstrapping for the team
+    results_parallel <- stratified_bootstrap(team_data, "teamID", "RF")
+
+    # Return the result for this team
+    return(results_parallel)
+  })
+  
+  # Stop the cluster
+  stopCluster(cl)
+})
+
+results_table <- bind_rows(results_parallel)
+
+# Print the combined results table
+print(results_table)
+print(time_parallel)
+
+showConnections(all = TRUE) # Show all open connections
+closeAllConnections()       # Close all unused connections
+```
+
+```{r}
+# Trying with a single team
+#single_team <- fielding2 %>% filter(teamID == "ML1")
+#stratified_bootstrap(single_team, "teamID", "RF", n_bootstrap = 1000)
+
+```
+
+
+
+#### 3. Using futures with the future package.
+```{r}
+set.seed(2111)
+
+# 3. Future Approach
+plan(multisession, workers = detectCores()-3) # Plan multisession for future
+
+
+
+# Split data by teamID for parallel processing
+split_data <- split(fielding2, fielding2$teamID)
+
+# Perform bootstrapping using futures
+time_future <- system.time({
+  # Use `future` to parallelize the computations
+  future_results <- lapply(split_data, function(team_data) {
+    future({
+      stratified_bootstrap(team_data, "teamID", "RF", n_bootstrap = 100) # Adjust bootstrap iterations if needed
+    })
+  })
+  
+  # Resolve futures to collect results
+  results_future <- lapply(future_results, value)
+})
+
+# Combine all results into a single dataframe
+results_table <- bind_rows(results_future)
+
+# Print timing and results
+print(time_future)
+print(results_table)
+
+# Combine results into a single dataframe
+results_table <- bind_rows(results_future)
+
+# Print timing and results
+print(time_future)
+print(results_table)
+
+```
+
+Generate at least 1,000 bootstrapped samples for each approach.
+
+Generate a table showing the estimated RF and associated standard errors from the three approaches.
+
+Report and discuss the performance difference between the versions.
+
