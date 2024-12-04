@@ -1,8 +1,18 @@
 ---
 title: "PS6"
-format: html
-editor: visual
+author: "Tiffany Wu"
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+output: html_document
+editor: source
+mainfont: Times New Roman
 ---
+
+## Github Repo Link to Problem Set 6:
+[https://github.com/tiffany-wu/Stats506/tree/main/PS6](https://github.com/tiffany-wu/Stats506/tree/main/PS6) 
 
 ## Stratified Bootstrapping
 
@@ -14,7 +24,6 @@ Use the “lahman” data that we first introduced in sql. In the statistical an
 
 ### a. Calculate the average RF for each team in the Fielding table. Then, since we don’t have a closed form for the standard deviation of this statistic, carry out a stratified bootstrap by team to estimate it. Do this out three ways:
 
-## *CHECK RF MULTIPLIED BY 3 NOT 9????*
 
 ```{r}
 # Load necessary libraries
@@ -56,32 +65,59 @@ team_rf <- fielding2 %>%
 Do this out three ways:
 
 #### 1. Without any parallel processing
+
 ```{r}
 # Function for bootstrapping
-stratified_bootstrap <- function(data, group_col, value_col, n_bootstrap = 1000) {
-  bootstrap_results <- data %>%
-    # Group the data by teamID
-    group_by(!!sym(group_col)) %>%
-    summarise(
-      # !!sym(value_col) = RF from fielding2
-      mean_RF = mean(!!sym(value_col), na.rm = TRUE),
-      # Ensures the result is ungrouped after summarization
-      .groups = "drop"
-    )
-  
-  # Add a new column (SE_RF) to the results, which will store the standard error of the average RF for each group
 
-  bootstrap_results$SE_RF <- sapply(unique(data[[group_col]]), function(team) {
-    team_data <- data %>% filter(!!sym(group_col) == team)
-    
-    boot_means <- replicate(n_bootstrap, {
-      # Sample with replacement
-      sample_data <- team_data %>% sample_frac(replace = TRUE)
-      mean(sample_data[[value_col]], na.rm = TRUE)
-    })
-    
-    sd(boot_means, na.rm = TRUE)
+#' Perform Stratified Bootstrapping for Grouped Data
+#'
+#' This function performs stratified bootstrapping on a dataset, calculating the group-level means and their associated standard errors (SE) across bootstrap replications. It also computes the actual mean for each group using the full dataset.
+#'
+#' @param data A data frame containing the dataset for bootstrapping. Must include columns `teamID` and `RF`, based on fielding2 dataframe.
+#' 
+#' @param n_bootstrap An integer specifying the number of bootstrap replications. Default is 1000. Can change to less when testing.
+#'
+#' @return A data frame with the following columns:
+#'   - `teamID`: The group identifier.
+#'   - `mean_RF`: The actual mean of `RF` for each group using the full dataset.
+#'   - `SE_RF`: The standard error of the group-level mean calculated from the bootstrap replications.
+#'
+stratified_bootstrap <- function(data, n_bootstrap = 1000) {
+  
+  # Perform bootstrap sampling across the entire dataset
+  bootstrap_samples <- replicate(n_bootstrap, {
+    # Sample with replacement from the entire dataset
+    data %>% sample_frac(replace = TRUE)
+  }, simplify = FALSE)
+  
+  # Calculate group-level means for each bootstrap sample
+  bootstrap_means <<- lapply(bootstrap_samples, function(sample_data) {
+    sample_data %>%
+      group_by(teamID) %>%
+      summarise(mean_RF = mean(RF, na.rm = TRUE)) %>%
+      ungroup()
   })
+  
+  # Combine all bootstrap means into a single dataframe
+  combined_results <- bind_rows(bootstrap_means, .id = "replication")
+  
+  # Calculate the overall mean and standard error (SE) for each group
+  bootstrap_results <- combined_results %>%
+    group_by(teamID) %>%
+    mutate(SE_RF = sd(mean_RF)) %>%
+    ungroup() %>%
+    select(teamID, SE_RF) %>%
+    distinct(teamID, .keep_all = TRUE)
+  
+  # Calculate the actual mean RF for each team -- doesn't need bootstraps, use entire original dataset
+  actual_means <- data %>%
+      group_by(teamID) %>%
+      summarise(mean_RF = mean(RF, na.rm = TRUE)) %>%
+      ungroup()
+  
+  # Join SEs with the actual means
+  bootstrap_results <- actual_means %>% 
+    left_join(bootstrap_results, by = "teamID")
   
   return(bootstrap_results)
 }
@@ -91,11 +127,11 @@ set.seed(2111)
 
 # 1. Standard Approach
 time_standard <- system.time({
-  results_standard <- stratified_bootstrap(fielding2, "teamID", "RF")
+  results_standard <- stratified_bootstrap(fielding2)
 })
 
 time_standard
-# results_standard -- put all results in a table at the end
+# results_standard # commenting out for rendering because we'll put all results in end
 ```
 
 #### 2. Using parallel processing with the parallel package.
@@ -115,86 +151,113 @@ time_parallel <- system.time({
   # Load necessary library on workers
   clusterEvalQ(cl, library(dplyr))
   
-  # Split data by teamID
-  split_data <- split(fielding2, fielding2$teamID) # Creates subsets for each teamID
+  # Export required data and functions to the workers
+  clusterExport(cl, varlist = c("fielding2", "stratified_bootstrap"))
   
-  # Export required function and split data to the cluster
-  clusterExport(cl, varlist = c("split_data", "stratified_bootstrap", "fielding2"))
-
-  # Run the bootstrap for each team in parallel
-  results_parallel <- parLapply(cl, names(split_data), function(team) {
+  # Perform bootstrap for all replications in parallel
+  bootstrap_samples <- parLapply(cl, 1:1000, function(rep) {
+    library(dplyr) # Needed inside the cluster
+    # Sample with replacement for the entire dataset
+    sampled_data <- fielding2 %>% sample_frac(replace = TRUE)
     
-    # Extract the subset for the current team
-    team_data <- split_data[[team]]
-
-    # Perform bootstrapping for the team
-    results_parallel <- stratified_bootstrap(team_data, "teamID", "RF")
-
-    # Return the result for this team
-    return(results_parallel)
+    # Calculate group-level means for this bootstrap sample
+    sampled_data %>%
+      group_by(teamID) %>%
+      summarise(mean_RF = mean(RF, na.rm = TRUE), .groups = "drop")
   })
   
   # Stop the cluster
   stopCluster(cl)
-})
-
-results_table_parallel <- bind_rows(results_parallel)
-
-# Print the combined results table
-# print(results_table_parallel) put all results in table at the end
-print(time_parallel) 
-
-showConnections(all = TRUE) # Show all open connections
-closeAllConnections()       # Close all unused connections
-```
-
-```{r}
-# Trying with a single team
-#single_team <- fielding2 %>% filter(teamID == "ML1")
-#stratified_bootstrap(single_team, "teamID", "RF", n_bootstrap = 1000)
-
-```
-
-
-
-#### 3. Using futures with the future package.
-```{r}
-set.seed(2111)
-
-# 3. Future Approach
-plan(multisession, workers = detectCores()-3) # Plan multisession for future
-
-# Split data by teamID for parallel processing
-split_data <- split(fielding2, fielding2$teamID)
-
-# Perform bootstrapping using futures
-time_future <- system.time({
-  # Use `future` to parallelize the computations
-  future_results <- lapply(split_data, function(team_data) {
-    future({
-      stratified_bootstrap(team_data, "teamID", "RF", n_bootstrap = 100) # Adjust bootstrap iterations if needed
-    })
-  })
   
-  # Resolve futures to collect results
-  results_future <- lapply(future_results, value)
+  # Combine all bootstrap results into one dataframe
+  combined_results <- bind_rows(bootstrap_samples, .id = "replication")
+  
+  # Calculate the overall mean and standard error (SE) for each group
+  results_parallel <- combined_results %>%
+    group_by(teamID) %>%
+    summarise(
+      SE_RF = sd(mean_RF, na.rm = TRUE),  # Standard error from bootstrap samples
+      .groups = "drop"
+    )
+  
+  # Calculate the actual mean RF for each team using the full dataset
+  actual_means <- fielding2 %>%
+    group_by(teamID) %>%
+    summarise(mean_RF = mean(RF, na.rm = TRUE), .groups = "drop")
+  
+  # Combine actual means and standard errors
+  results_table_parallel <- actual_means %>%
+    left_join(results_parallel, by = "teamID")
 })
-
-# Combine all results into a single dataframe
-results_table_futures <- bind_rows(results_future)
 
 # Print timing and results
-print(time_future)
-# print(results_table)
+print(time_parallel)
+# results_table_parallel
 ```
 
-Generate at least 1,000 bootstrapped samples for each approach.
+#### 3. Using futures with the future package.
 
-### b. Generate a table showing the estimated RF and associated standard errors from the three approaches.
+```{r, warning = FALSE}
+# Set seed for reproducibility
+set.seed(2111)
 
-Below we see the estimated RF and associated standard errors. While the estimated RFs were pretty much the same across all approaches, the standard errors were often different.
+# Plan multisession for future
+plan(multisession, workers = detectCores() - 3)
 
-## *WHY???????????????????????????????????? Did I do it wrong?*
+# Futures Approach
+time_future <- system.time({
+  
+  # Use `future` to parallelize the bootstrap sampling
+  future_samples <- lapply(1:1000, function(rep) {
+    future({
+      # Sample with replacement for the entire dataset
+      sampled_data <- fielding2 %>% sample_frac(replace = TRUE)
+      
+      # Calculate group-level means for this bootstrap sample
+      sampled_data %>%
+        group_by(teamID) %>%
+        summarise(mean_RF = mean(RF, na.rm = TRUE), .groups = "drop")
+    }, seed = TRUE)
+  })
+
+  # Resolve futures to collect results
+  resolved_samples <- lapply(future_samples, value)
+  
+  # Combine all bootstrap results into one dataframe
+  combined_results <- bind_rows(resolved_samples, .id = "replication")
+  
+  # Calculate the overall mean and standard error (SE) for each group
+  results_future <- combined_results %>%
+    group_by(teamID) %>%
+    summarise(
+      SE_RF = sd(mean_RF, na.rm = TRUE),  # Standard error from bootstrap samples
+      .groups = "drop"
+    )
+  
+  # Calculate the actual mean RF for each team using the full dataset
+  actual_means <- fielding2 %>%
+    group_by(teamID) %>%
+    summarise(mean_RF = mean(RF, na.rm = TRUE), .groups = "drop")
+  
+  # Combine actual means and standard errors
+  results_table_future <- actual_means %>%
+    left_join(results_future, by = "teamID")
+
+})
+
+# Reset future plan
+plan(sequential)
+
+# Print timing and results
+time_future
+# results_table_future
+
+```
+
+
+### b. Generate a table showing the estimated RF and associated standard errors for the teams with the 10 highest RF from the three approaches.
+
+Below we see the estimated RF and associated standard errors. The estimated standard errors were similar across all three approaches.
 
 ```{r}
 # Add a column to each dataframe to indicate the method used
@@ -204,7 +267,7 @@ results_standard <- results_standard %>%
 results_table_parallel <- results_table_parallel %>%
   mutate(Method = "Parallel")
 
-results_table_futures <- results_table_futures %>%
+results_table_futures <- results_table_future %>%
   mutate(Method = "Future")
 
 # Combine all results into one dataframe
@@ -218,26 +281,41 @@ combined_results <- combined_results %>%
   ) %>%
   arrange(teamID)
 
-# Print the combined results
-print(combined_results)
+# Get the top 10 teams by Estimated Mean RFs
+top_10_teams <- combined_results %>%
+  group_by(teamID) %>%
+  # summarise so you can get everything down to 1 row/team, even though the avg is the same for all rows for a given team
+  summarise(avg_RF = mean(`Estimated Mean RFs`, na.rm = TRUE)) %>%
+  arrange(desc(avg_RF)) %>%
+  head(10) %>%
+  pull(teamID)
+
+# Filter the combined results to include only the top 10 teams
+top_10_combined_results <- combined_results %>%
+  filter(teamID %in% top_10_teams) %>%
+  arrange(desc(`Estimated Mean RFs`), teamID, Method)
+
+# Set the maximum number of rows to print to Inf (infinite)
+options(tibble.print_max = Inf)
+
+# Print the filtered results
+print(top_10_combined_results)
 
 ```
 
-
 ### c. Report and discuss the performance difference between the versions.
 
-In the below Timing Results table, we see the performance differences between the versions. The Standard approach took longer (295.23 seconds) because all computations were performed sequentially. As we talked about in class, this approach is not efficient for large datasets or when bootstrapping involves many iterations.
+In the below Timing Results table, we see the performance differences between the versions. Although the Standard approach was expected to be the slowest because of how all computations were performed sequentially, it surprisingly performed faster than the Future approach but slower than the Parallel approach. As we talked about in class, the Standard approach is not as efficient for large datasets or when bootstrapping involves many iterations.
 
-The Parallel approach reduced the time to 66.23 seconds by leveraging multiple cores. With parLapply in the parallel package, tasks are distributed evenly at the start and run to completion. If one worker takes longer, other workers might sit idle. However, this is still quicker than performing the computations sequentially in the Standard approach.
+The Parallel approach was the quickest and most efficient. With parLapply in the parallel package, tasks are distributed evenly at the start and run to completion. If one worker takes longer, other workers might sit idle. However, this is still quicker than performing the computations sequentially in the Standard approach.
 
-The Future approach was the fastest (16.65 seconds). The future package automatically schedules tasks dynamically. As soon as a worker finishes a task, it picks up the next one without waiting for other workers to finish. This minimizes idle time for workers and ensures efficient utilization of resources. Not to mention, it transfers only the necessary data to each worker for each task, which reduces the time spend on communication between the main R session and the worker nodes. By dynamically scheduling tasks across multiple cores with minimal data transfer overhead, it achieved superior scalability and efficiency.
-
+Interestingly, the Future approach was the slowest. Although the future package schedules tasks to optimize worker utilization, the overhead of initializing a large number of futures and transferring data to and from workers could have added significant delays. (I did go to see the professor during office hours, and he said that while there were no obvious coding errors, the lag could be due to the way lapply works or something with my computer specifically...) Overall, this suggests that for tasks when there may be a large overhead, the Future approach could become inefficient.
 
 ```{r}
 # Timing Results
 timing_results <- data.frame(
   Approach = c("Standard", "Parallel", "Future"),
-  Elapsed_Time = c(time_standard["elapsed"], time_parallel["elapsed"], time_future["elapsed"])
+  Total_Time = c(time_standard["elapsed"], time_parallel["elapsed"], time_future["elapsed"])
 )
 
 # Print timing results
