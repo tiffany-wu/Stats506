@@ -29,7 +29,12 @@ library(lmerTest)
 library(googlesheets4)
 library(jtools)
 library(haven)
+library(merTools)
 library(multilevel)
+library(multilevelTools)
+library(ICCbin)
+library(rdrobust)
+library(sandwich)
 library(lmtest)    # Recalculate model errors with sandwich functions with coeftest()
 library(haven)
 library(labelled)
@@ -85,13 +90,13 @@ boost_clean <- boost %>%
     as.factor
   ))
 
-#a <- boost_clean %>%
-#  select(pkeligyear_spring, starts_with("residence_town_3_fy"), starts_with("urban")) %>%
-#  select(pkeligyear_spring, contains("fy1") & !contains("10"))
+a <- boost_clean %>%
+  select(pkeligyear_spring, starts_with("residence_town_3_fy"), starts_with("urban")) %>%
+  select(pkeligyear_spring, contains("fy1") & !contains("10"))
 
-#a <- boost_clean %>%
-#  select(pkeligyear_spring, contains("residence_town_3")) %>%
-#  filter(pkeligyear_spring == 2010)
+a <- boost_clean %>%
+  select(pkeligyear_spring, contains("residence_town_3")) %>%
+  filter(pkeligyear_spring == 2010)
 ```
 
 
@@ -143,7 +148,7 @@ m3 <- glmer(chronic_absence_fy4 ~ male + black + hispanic + asian + mixed_other 
             control = glmerControl(optimizer = "bobyqa"),
             nAGQ = 0)
             
-```{r, include = FALSE}
+```{r}
 # Individual predictors
 
 # 8th Grade Model
@@ -402,6 +407,8 @@ table(boost_clean$urban_residence_town_3_fy1)
 # sch_most_fy1
 table(boost_clean$sch_most_fy1)
 
+table(boost_clean$pkeligyear_spring, boost_clean$male)
+
 ```
 
 
@@ -549,6 +556,8 @@ print(doc, target = "results_table.docx")
 ```
 
 
+# Trial regressions w/ 1 coefficient to debug
+*Fixed 12/2024*
 ```{r}
 g10_1 <- glm(chronic_abs_fy10_0 ~ lunch_fy9,
              data = boost_clean)
@@ -567,6 +576,70 @@ g10_2 <- glm(chronic_abs_fy10_0 ~ attend_rate_fy9_0,
 summary(g10_2)
 ```
 
+# Odds Ratios Table
+```{r}
+# Calculate odds ratios and update formatted results
+all_results <- all_results %>%
+  mutate(
+    odds_ratio = exp(estimate), # Transform coefficients to odds ratios
+    formatted = sprintf("%.3f%s\n(%.3f)", odds_ratio, significance, std.error) # Update formatted column
+  )
+
+# Combine results for the same Variable and pivot wider
+results_table_or <- all_results %>%
+  select(Variable, Followup_Year, formatted) %>%
+  pivot_wider(
+    names_from = Followup_Year,
+    values_from = formatted
+  ) %>%
+  arrange(match(Variable, variable_labels)) # Order variables based on labels
+
+# Reorder FY columns
+results_table_or <- results_table_or %>%
+  select(Variable, all_of(fy_order))
+
+# Rename FY columns to corresponding grade levels
+results_table_or <- results_table_or %>%
+  rename_with(~ column_renames[.x], starts_with("FY"))
+
+# Display the table with odds ratios
+results_table_or %>%
+  gt() %>%
+  tab_header(
+    title = "Regression Odds Ratios by Grade",
+    subtitle = "Dependent Variable: Chronic Absenteeism in 9th Grade"
+  ) %>%
+  cols_label(
+    starts_with("PreK") ~ gt::md("**PreK**"),
+    starts_with("K") ~ gt::md("**K**"),
+    starts_with("1st") ~ gt::md("**1st Grade**"),
+    starts_with("2nd") ~ gt::md("**2nd Grade**"),
+    starts_with("3rd") ~ gt::md("**3rd Grade**"),
+    starts_with("4th") ~ gt::md("**4th Grade**"),
+    starts_with("5th") ~ gt::md("**5th Grade**"),
+    starts_with("6th") ~ gt::md("**6th Grade**"),
+    starts_with("7th") ~ gt::md("**7th Grade**"),
+    starts_with("8th") ~ gt::md("**8th Grade**")
+  ) %>%
+  cols_align(align = "left", columns = "Variable") %>%
+  tab_caption(
+    caption = "Note: Odds ratios are followed by statistical significance stars (*** p < 0.001, ** p < 0.01, * p < 0.05). Standard errors in parentheses. Grade retentions can only occur after PreK. There are missing MCAS math and ELA scores until the 4th grade follow-up year because students first take the MCAS in 3rd grade."
+  )
+
+# Export to Excel
+write.xlsx(results_table_or, "results_table_odds_ratios.xlsx")
+
+# Export to Word
+doc_or <- read_docx() %>%
+  body_add_flextable(
+    flextable(results_table_or) %>%
+      theme_vanilla() %>%
+      set_header_labels(Variable = "Coefficient (Odds Ratio)", Metric = "") %>%
+      autofit()
+  )
+print(doc_or, target = "results_table_odds_ratios.docx")
+
+```
 
 # Predicted Probabilities -- FY 9
 ```{r}
@@ -842,3 +915,153 @@ ggplot(metrics_long, aes(x = FY, y = Value, color = Metric, group = Metric)) +
   )
 
 ```
+
+# Graphing Performance Metrics by Grade
+```{r}
+# Create a mapping for fiscal year to grade labels
+grade_labels <- c(
+  "FY0" = "PreK",
+  "FY1" = "K",
+  "FY2" = "1st Grade",
+  "FY3" = "2nd Grade",
+  "FY4" = "3rd Grade",
+  "FY5" = "4th Grade",
+  "FY6" = "5th Grade",
+  "FY7" = "6th Grade",
+  "FY8" = "7th Grade",
+  "FY9" = "8th Grade"
+)
+
+# Reshape the metrics_df2 to a long format for ggplot
+metrics_long <- metrics_df2 %>%
+  pivot_longer(cols = -FY, names_to = "Metric", values_to = "Value")
+
+# Create the plot with updated x-axis labels
+ggplot(metrics_long, aes(x = FY, y = Value, color = Metric, group = Metric)) +
+  geom_line() +
+  geom_point(size = 2) +
+  scale_x_discrete(labels = grade_labels) +  # Apply the grade labels to the x-axis
+  labs(
+    title = "Model Metrics Over Follow-Up Years",
+    x = "Grade",
+    y = "Metric Value",
+    color = "Metric"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom"
+  )
+
+```
+
+
+# Linear Probability Models
+```{r}
+# Make outcome numeric instead of factor
+boost_clean <- boost_clean %>% mutate(chronic_abs_fy10_0 = as.numeric(chronic_abs_fy10_0))
+
+# Run regressions for each follow-up year separately as LPMs
+
+model_fy9 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy9 + lunch_fy9 + 
+    sped_fy9 + attend_rate_fy9_0 + susp_total_fy9 + grade_ret_fy9_final + 
+    moveschools_fy9 + urban_residence_town_3_fy9 + math_score_comparator_fy9 + 
+    ela_score_comparator_fy9 + (1 | sch_most_fy9),
+  data = boost_clean
+)
+
+model_fy8 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy8 + lunch_fy8 + 
+    sped_fy8 + attend_rate_fy8_0 + susp_total_fy8 + grade_ret_fy8_final + 
+    moveschools_fy8 + urban_residence_town_3_fy8 + math_score_comparator_fy8 + 
+    ela_score_comparator_fy8 + (1 | sch_most_fy8),
+  data = boost_clean
+)
+
+model_fy7 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy7 + lunch_fy7 + 
+    sped_fy7 + attend_rate_fy7_0 + susp_total_fy7 + grade_ret_fy7_final + 
+    moveschools_fy7 + urban_residence_town_3_fy7 + math_score_comparator_fy7 + 
+    ela_score_comparator_fy7 + (1 | sch_most_fy7),
+  data = boost_clean
+)
+
+model_fy6 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy6 + lunch_fy6 + 
+    sped_fy6 + attend_rate_fy6_0 + susp_total_fy6 + grade_ret_fy6_final + 
+    moveschools_fy6 + urban_residence_town_3_fy6 + math_score_comparator_fy6 + 
+    ela_score_comparator_fy6 + (1 | sch_most_fy6),
+  data = boost_clean
+)
+
+model_fy5 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy5 + lunch_fy5 + 
+    sped_fy5 + attend_rate_fy5_0 + susp_total_fy5 + grade_ret_fy5_final + 
+    moveschools_fy5 + urban_residence_town_3_fy5 + math_score_comparator_fy5 + 
+    ela_score_comparator_fy5 + (1 | sch_most_fy5),
+  data = boost_clean
+)
+
+model_fy4 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy4 + lunch_fy4 + 
+    sped_fy4 + attend_rate_fy4_0 + susp_total_fy4 + grade_ret_fy4_final + 
+    moveschools_fy4 + urban_residence_town_3_fy4 + (1 | sch_most_fy4),
+  data = boost_clean
+)
+
+model_fy3 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy3 + lunch_fy3 + 
+    sped_fy3 + attend_rate_fy3_0 + susp_total_fy3 + grade_ret_fy3_final + 
+    moveschools_fy3 + urban_residence_town_3_fy3 + (1 | sch_most_fy3),
+  data = boost_clean
+)
+
+model_fy2 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy2 + lunch_fy2 + 
+    sped_fy2 + attend_rate_fy2_0 + susp_total_fy2 + grade_ret_fy2_final + 
+    moveschools_fy2 + urban_residence_town_3_fy2 + (1 | sch_most_fy2),
+  data = boost_clean
+)
+
+model_fy1 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy1 + lunch_fy1 + 
+    sped_fy1 + attend_rate_fy1_0 + susp_total_fy1 + grade_ret_fy1_final + 
+    moveschools_fy1 + urban_residence_town_3_fy1 + (1 | sch_most_fy1),
+  data = boost_clean
+)
+
+model_fy0 <- lmer(
+  chronic_abs_fy10_0 ~ pkeligyear_spring + male + black + hispanic + 
+    asian + mixed_other + dual_language + firstlang_other + firstlang_span +
+    firstlang_viet + countryorigin_usa + elp_enroll_fy0 + lunch_fy0 + 
+    sped_fy0 + attend_rate_fy0_0 + susp_total_fy0 + 
+    moveschools_fy0 + urban_residence_town_3_fy0 + (1 | sch_most_fy0),
+  data = boost_clean
+)
+
+summary(model_fy9)
+
+```
+
+
+
+
