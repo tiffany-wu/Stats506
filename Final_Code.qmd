@@ -783,7 +783,7 @@ cat("Balanced Error Rate (BER):", ber, "\n")
 # Initialize a list to store metrics for each FY
 metrics_list <- list()
 
-# Loop through fiscal years
+# Loop through FY
 for (fy in 0:9) {
   # Dynamically construct model and dataset names
   model_name <- get(paste0("model_fy", fy))
@@ -903,7 +903,7 @@ ggplot(metrics_long, aes(x = FY, y = Value, color = Metric, group = Metric)) +
   geom_point(size = 2) +
   labs(
     title = "Model Metrics Over Follow-Up Years",
-    x = "Fiscal Year",
+    x = "FY",
     y = "Metric Value",
     color = "Metric"
   ) +
@@ -917,8 +917,9 @@ ggplot(metrics_long, aes(x = FY, y = Value, color = Metric, group = Metric)) +
 ```
 
 # Graphing Performance Metrics by Grade
+*Need to ask about grade retention handling*
 ```{r}
-# Create a mapping for fiscal year to grade labels
+# Create a mapping for FY to grade labels
 grade_labels <- c(
   "FY0" = "PreK",
   "FY1" = "K",
@@ -957,6 +958,7 @@ ggplot(metrics_long, aes(x = FY, y = Value, color = Metric, group = Metric)) +
 
 
 # Linear Probability Models
+*12/2024 decision to not use*
 ```{r}
 # Make outcome numeric instead of factor
 boost_clean <- boost_clean %>% mutate(chronic_abs_fy10_0 = as.numeric(chronic_abs_fy10_0))
